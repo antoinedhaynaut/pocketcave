@@ -54,6 +54,15 @@
   .seg .type-blanc[aria-pressed="true"]{background:#e9d9a8;border-color:#e9d9a8;color:#3a2c14}
   .seg .type-effervescent[aria-pressed="true"]{background:#c9b15f;border-color:#c9b15f;color:#2a2110}
 
+  .searchbar{position:relative;margin:14px 0 0}
+  .searchbar .sico{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--faint);font-size:15px;pointer-events:none}
+  .searchbar input{
+    width:100%;appearance:none;background:var(--surface);border:1px solid var(--line-strong);color:var(--text);
+    border-radius:10px;padding:11px 14px 11px 36px;font-size:14px;font-family:var(--sans);outline:none;
+  }
+  .searchbar input::placeholder{color:var(--faint)}
+  .searchbar input:focus{border-color:var(--gold)}
+
   .filterbar{display:flex;align-items:center;gap:10px;margin:16px 0 0;flex-wrap:wrap}
   .ghost{
     appearance:none;cursor:pointer;background:var(--surface-2);border:1px solid var(--line-strong);
@@ -87,6 +96,30 @@
   .card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
   .card h2{font-family:var(--serif);font-size:19px;font-weight:600;margin:0;letter-spacing:-.005em}
   .card .sub{color:var(--gold);font-size:12px;font-family:var(--mono);letter-spacing:.04em;margin-top:3px}
+  .card .sub .ceplink{color:var(--gold);text-decoration:none;border-bottom:1px dotted var(--gold);cursor:pointer}
+  .card .sub .ceplink:hover{color:#e6c068}
+  .card .sub .cepplain{color:var(--gold)}
+
+  .overlay{position:fixed;inset:0;background:rgba(10,6,5,.65);display:none;align-items:flex-end;justify-content:center;z-index:50;backdrop-filter:blur(2px)}
+  .overlay.open{display:flex}
+  .popover{
+    width:100%;max-width:680px;background:var(--surface-2);border:1px solid var(--line-strong);border-bottom:none;
+    border-radius:16px 16px 0 0;padding:18px 18px calc(20px + env(safe-area-inset-bottom));
+    animation:popup .18s ease-out;
+  }
+  @keyframes popup{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .popover .ph{display:flex;align-items:center;gap:9px}
+  .popover .dot{width:11px;height:11px;border-radius:50%;flex:none}
+  .popover .dot.r{background:var(--wine)} .popover .dot.b{background:#e9d9a8}
+  .popover h2{font-family:var(--serif);font-size:21px;margin:0;font-weight:600}
+  .popover .syn{font-family:var(--mono);font-size:11px;color:var(--faint);margin-left:auto}
+  .popover .d{color:var(--dim);font-size:13.5px;margin:11px 0 0;line-height:1.55}
+  .popover .t{font-size:13px;margin:9px 0 0;color:var(--text)}
+  .popover .t b{color:var(--gold);font-weight:600;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-right:5px}
+  .popover .close{
+    display:block;width:100%;margin-top:16px;appearance:none;cursor:pointer;background:var(--surface-3);
+    border:1px solid var(--line-strong);color:var(--text);border-radius:10px;padding:10px;font-size:13.5px;font-family:var(--sans);
+  }
   .chip{display:inline-block;margin-top:9px;font-family:var(--mono);font-size:11px;color:var(--gold);
     background:var(--surface-3);border:1px solid var(--line-strong);border-radius:999px;padding:3px 10px;letter-spacing:.02em}
   .card .desc{color:var(--dim);font-size:13px;margin:11px 0 13px}
@@ -149,7 +182,7 @@
 <div class="wrap">
   <header>
     <h1>Pocket <span class="am">cave</span></h1>
-    <p class="tagline">France · Italie · Espagne · Suisse.</p>
+    <p class="tagline">Repères de style par appellation, garde et qualité des millésimes — France · Italie · Espagne · Suisse.</p>
   </header>
 
   <nav class="tabs" role="tablist">
@@ -164,6 +197,11 @@
     <div class="seg" id="countrySeg"></div>
     <div class="seg-label">Type de vin</div>
     <div class="seg" id="typeSeg"></div>
+
+    <div class="searchbar">
+      <span class="sico">⌕</span>
+      <input type="text" id="searchApp" placeholder="Rechercher une appellation, un cépage…" autocomplete="off">
+    </div>
 
     <div class="filterbar">
       <button class="ghost" id="filterToggle" aria-pressed="false" onclick="toggleFilter()">⌖ Filtrer par goût</button>
@@ -186,6 +224,10 @@
   <section id="view-mil" hidden>
     <div class="seg-label">Pays</div>
     <div class="seg" id="milCountrySeg"></div>
+    <div class="searchbar">
+      <span class="sico">⌕</span>
+      <input type="text" id="searchMil" placeholder="Rechercher une région…" autocomplete="off">
+    </div>
     <div class="legend">
       <span><i class="swatch c5"></i>Exceptionnel</span>
       <span><i class="swatch c4"></i>Très bon</span>
@@ -204,7 +246,11 @@
 
   <!-- ===== CÉPAGES ===== -->
   <section id="view-cep" hidden>
-    <div class="seg-label">30 cépages principaux · ordre alphabétique</div>
+    <div class="seg-label" id="cepCount">54 cépages · ordre alphabétique</div>
+    <div class="searchbar">
+      <span class="sico">⌕</span>
+      <input type="text" id="searchCep" placeholder="Rechercher un cépage, un goût…" autocomplete="off">
+    </div>
     <div id="cepages"></div>
     <div class="src">
       <b>Sources — guides de cépages :</b>
@@ -213,6 +259,10 @@
       Robinson, Harding &amp; Vouillamoz, <i>Wine Grapes</i> (ouvrage de référence).
     </div>
   </section>
+</div>
+
+<div class="overlay" id="cepOverlay" onclick="if(event.target===this)closeCepPopover()">
+  <div class="popover" id="cepPopover"></div>
 </div>
 
 <script>
@@ -252,98 +302,98 @@ const AXES = {
 const APPS = {
 FR:{
  rouge:[
-  {n:'Pauillac',r:'Bordeaux · Cab. Sauvignon',g:'10-25 ans',d:'Le classicisme médocain : cassis, cèdre, charpente de garde.',v:[80,85,55,48,88]},
-  {n:'Margaux',r:'Bordeaux · Cab. Sauvignon',g:'8-20 ans',d:'Plus de dentelle que de muscle, parfumé et raffiné.',v:[68,70,55,52,85]},
-  {n:'Saint-Julien',r:'Bordeaux · Cab. Sauvignon',g:'8-20 ans',d:'Équilibre médocain par excellence, droit et harmonieux.',v:[74,78,55,50,82]},
-  {n:'Médoc / Haut-Médoc',r:'Bordeaux · Cab. Sauvignon',g:'5-12 ans',d:'Bordeaux d\'accès : structuré, fruits noirs, boisé mesuré.',v:[70,76,55,52,72]},
-  {n:'Saint-Émilion',r:'Bordeaux · Merlot',g:'6-15 ans',d:'Rive droite ronde et veloutée, prune et épices.',v:[72,65,50,60,80]},
-  {n:'Pomerol',r:'Bordeaux · Merlot',g:'8-20 ans',d:'Merlot opulent et soyeux, truffe et fruits mûrs.',v:[75,62,48,62,85]},
+  {n:'Pauillac',r:'Bordeaux · Cab. Sauvignon',cep:'Cabernet Sauvignon',g:'10-25 ans',d:'Le classicisme médocain : cassis, cèdre, charpente de garde.',v:[80,85,55,48,88]},
+  {n:'Margaux',r:'Bordeaux · Cab. Sauvignon',cep:'Cabernet Sauvignon',g:'8-20 ans',d:'Plus de dentelle que de muscle, parfumé et raffiné.',v:[68,70,55,52,85]},
+  {n:'Saint-Julien',r:'Bordeaux · Cab. Sauvignon',cep:'Cabernet Sauvignon',g:'8-20 ans',d:'Équilibre médocain par excellence, droit et harmonieux.',v:[74,78,55,50,82]},
+  {n:'Médoc / Haut-Médoc',r:'Bordeaux · Cab. Sauvignon',cep:'Cabernet Sauvignon',g:'5-12 ans',d:'Bordeaux d\'accès : structuré, fruits noirs, boisé mesuré.',v:[70,76,55,52,72]},
+  {n:'Saint-Émilion',r:'Bordeaux · Merlot',cep:'Merlot',g:'6-15 ans',d:'Rive droite ronde et veloutée, prune et épices.',v:[72,65,50,60,80]},
+  {n:'Pomerol',r:'Bordeaux · Merlot',cep:'Merlot',g:'8-20 ans',d:'Merlot opulent et soyeux, truffe et fruits mûrs.',v:[75,62,48,62,85]},
   {n:'Pessac-Léognan',r:'Bordeaux · Cab./Merlot',g:'8-18 ans',d:'Graves : notes fumées, tabac, élégance terrienne.',v:[70,72,53,52,80]},
-  {n:'Bourgogne — Côte de Nuits',r:'Bourgogne · Pinot Noir',g:'6-15 ans',d:'Pinot tendu et profond (Gevrey, Vosne…), cerise et sous-bois.',v:[55,55,70,60,85]},
-  {n:'Volnay',r:'Bourgogne · Pinot Noir',g:'5-12 ans',d:'Le plus floral des rouges de la Côte de Beaune, fin et frais.',v:[45,45,68,65,78]},
-  {n:'Côte-Rôtie',r:'Rhône nord · Syrah',g:'8-20 ans',d:'Syrah parfumée (violette, lard, poivre), élégante.',v:[75,70,58,60,85]},
-  {n:'Hermitage',r:'Rhône nord · Syrah',g:'10-25 ans',d:'La Syrah la plus massive et de garde, dense et fumée.',v:[85,78,55,58,85]},
+  {n:'Bourgogne — Côte de Nuits',r:'Bourgogne · Pinot Noir',cep:'Pinot Noir',g:'6-15 ans',d:'Pinot tendu et profond (Gevrey, Vosne…), cerise et sous-bois.',v:[55,55,70,60,85]},
+  {n:'Volnay',r:'Bourgogne · Pinot Noir',cep:'Pinot Noir',g:'5-12 ans',d:'Le plus floral des rouges de la Côte de Beaune, fin et frais.',v:[45,45,68,65,78]},
+  {n:'Côte-Rôtie',r:'Rhône nord · Syrah',cep:'Syrah',g:'8-20 ans',d:'Syrah parfumée (violette, lard, poivre), élégante.',v:[75,70,58,60,85]},
+  {n:'Hermitage',r:'Rhône nord · Syrah',cep:'Syrah',g:'10-25 ans',d:'La Syrah la plus massive et de garde, dense et fumée.',v:[85,78,55,58,85]},
   {n:'Châteauneuf-du-Pape',r:'Rhône sud · Grenache+',g:'6-18 ans',d:'Solaire et généreux, garrigue, fruits confits, chaleur.',v:[85,68,45,70,80]},
-  {n:'Gigondas',r:'Rhône sud · Grenache',g:'5-12 ans',d:'Le Châteauneuf rustique du voisin, charnu et épicé.',v:[80,65,48,72,65]},
-  {n:'Beaujolais — Morgon/Fleurie',r:'Beaujolais · Gamay',g:'2-6 ans',d:'Gamay de cru : gourmand, fruits rouges croquants.',v:[48,42,65,80,52]},
-  {n:'Chinon / Bourgueil',r:'Loire · Cabernet Franc',g:'3-10 ans',d:'Cab franc frais : framboise, poivron, finale crayeuse.',v:[55,55,62,65,60]},
-  {n:'Madiran',r:'Sud-Ouest · Tannat',g:'8-20 ans',d:'Le plus tannique de France, sombre, taillé pour la garde.',v:[82,90,55,55,65]},
-  {n:'Cahors',r:'Sud-Ouest · Malbec',g:'5-12 ans',d:'Malbec sombre et rustique, fruits noirs et réglisse.',v:[78,78,52,60,60]},
-  {n:'Bandol',r:'Provence · Mourvèdre',g:'8-20 ans',d:'Mourvèdre sauvage et tannique, garrigue et cuir.',v:[80,80,52,58,72]},
+  {n:'Gigondas',r:'Rhône sud · Grenache',cep:'Grenache',g:'5-12 ans',d:'Le Châteauneuf rustique du voisin, charnu et épicé.',v:[80,65,48,72,65]},
+  {n:'Beaujolais — Morgon/Fleurie',r:'Beaujolais · Gamay',cep:'Gamay',g:'2-6 ans',d:'Gamay de cru : gourmand, fruits rouges croquants.',v:[48,42,65,80,52]},
+  {n:'Chinon / Bourgueil',r:'Loire · Cabernet Franc',cep:'Cabernet Franc',g:'3-10 ans',d:'Cab franc frais : framboise, poivron, finale crayeuse.',v:[55,55,62,65,60]},
+  {n:'Madiran',r:'Sud-Ouest · Tannat',cep:'Tannat',g:'8-20 ans',d:'Le plus tannique de France, sombre, taillé pour la garde.',v:[82,90,55,55,65]},
+  {n:'Cahors',r:'Sud-Ouest · Malbec',cep:'Malbec',g:'5-12 ans',d:'Malbec sombre et rustique, fruits noirs et réglisse.',v:[78,78,52,60,60]},
+  {n:'Bandol',r:'Provence · Mourvèdre',cep:'Mourvèdre',g:'8-20 ans',d:'Mourvèdre sauvage et tannique, garrigue et cuir.',v:[80,80,52,58,72]},
   {n:'Côtes du Rhône',r:'Rhône · Grenache/Syrah',g:'1-4 ans',d:'Le rouge de tous les jours : fruité, épicé, souple.',v:[60,50,50,70,45]},
-  {n:'Fronsac',r:'Bordeaux · Merlot',g:'4-10 ans',d:'Rive droite méconnue, bon rapport, fruit et fraîcheur.',v:[68,65,52,58,65]},
+  {n:'Fronsac',r:'Bordeaux · Merlot',cep:'Merlot',g:'4-10 ans',d:'Rive droite méconnue, bon rapport, fruit et fraîcheur.',v:[68,65,52,58,65]},
  ],
  blanc:[
-  {n:'Chablis',r:'Bourgogne · Chardonnay',g:'3-8 ans',d:'Chardonnay tranchant et salin, presque sans bois.',v:[5,80,88,50,15]},
-  {n:'Puligny-Montrachet',r:'Bourgogne · Chardonnay',g:'5-12 ans',d:'Grand blanc ciselé, tension et profondeur minérale.',v:[6,65,75,65,50]},
-  {n:'Meursault',r:'Bourgogne · Chardonnay',g:'4-10 ans',d:'Plus rond et beurré, noisette, légèrement boisé.',v:[8,55,60,65,55]},
-  {n:'Pouilly-Fuissé',r:'Mâconnais · Chardonnay',g:'2-6 ans',d:'Chardonnay du sud généreux, fruits blancs, accessible.',v:[8,58,60,60,45]},
-  {n:'Sancerre',r:'Loire · Sauvignon',g:'1-5 ans',d:'Sauvignon vif et minéral, agrumes, pierre à fusil.',v:[5,82,78,70,8]},
-  {n:'Pouilly-Fumé',r:'Loire · Sauvignon',g:'2-6 ans',d:'Frère fumé du Sancerre, plus de profondeur minérale.',v:[6,80,80,68,10]},
-  {n:'Vouvray',r:'Loire · Chenin',g:'3-15 ans',d:'Du sec au demi-sec : coing, miel, acidité vibrante.',v:[40,70,60,65,12]},
-  {n:'Savennières',r:'Loire · Chenin',g:'5-15 ans',d:'Chenin sec et austère de grande garde, minéral.',v:[8,70,78,60,20]},
-  {n:'Alsace Riesling',r:'Alsace · Riesling',g:'3-12 ans',d:'Sec et droit, agrumes, minéralité, grande pureté.',v:[15,78,80,70,5]},
-  {n:'Alsace Gewurztraminer',r:'Alsace · Gewurztraminer',g:'2-8 ans',d:'Explosif : litchi, rose, épices ; souvent demi-sec.',v:[35,45,35,95,5]},
-  {n:'Alsace Pinot Gris',r:'Alsace · Pinot Gris',g:'2-8 ans',d:'Ample et fumé, fruits mûrs, parfois moelleux.',v:[30,50,45,70,8]},
-  {n:'Condrieu',r:'Rhône nord · Viognier',g:'1-4 ans',d:'Viognier opulent : abricot, fleurs, texture grasse.',v:[12,45,40,88,25]},
+  {n:'Chablis',r:'Bourgogne · Chardonnay',cep:'Chardonnay',g:'3-8 ans',d:'Chardonnay tranchant et salin, presque sans bois.',v:[5,80,88,50,15]},
+  {n:'Puligny-Montrachet',r:'Bourgogne · Chardonnay',cep:'Chardonnay',g:'5-12 ans',d:'Grand blanc ciselé, tension et profondeur minérale.',v:[6,65,75,65,50]},
+  {n:'Meursault',r:'Bourgogne · Chardonnay',cep:'Chardonnay',g:'4-10 ans',d:'Plus rond et beurré, noisette, légèrement boisé.',v:[8,55,60,65,55]},
+  {n:'Pouilly-Fuissé',r:'Mâconnais · Chardonnay',cep:'Chardonnay',g:'2-6 ans',d:'Chardonnay du sud généreux, fruits blancs, accessible.',v:[8,58,60,60,45]},
+  {n:'Sancerre',r:'Loire · Sauvignon',cep:'Sauvignon Blanc',g:'1-5 ans',d:'Sauvignon vif et minéral, agrumes, pierre à fusil.',v:[5,82,78,70,8]},
+  {n:'Pouilly-Fumé',r:'Loire · Sauvignon',cep:'Sauvignon Blanc',g:'2-6 ans',d:'Frère fumé du Sancerre, plus de profondeur minérale.',v:[6,80,80,68,10]},
+  {n:'Vouvray',r:'Loire · Chenin',cep:'Chenin Blanc',g:'3-15 ans',d:'Du sec au demi-sec : coing, miel, acidité vibrante.',v:[40,70,60,65,12]},
+  {n:'Savennières',r:'Loire · Chenin',cep:'Chenin Blanc',g:'5-15 ans',d:'Chenin sec et austère de grande garde, minéral.',v:[8,70,78,60,20]},
+  {n:'Alsace Riesling',r:'Alsace · Riesling',cep:'Riesling',g:'3-12 ans',d:'Sec et droit, agrumes, minéralité, grande pureté.',v:[15,78,80,70,5]},
+  {n:'Alsace Gewurztraminer',r:'Alsace · Gewurztraminer',cep:'Gewurztraminer',g:'2-8 ans',d:'Explosif : litchi, rose, épices ; souvent demi-sec.',v:[35,45,35,95,5]},
+  {n:'Alsace Pinot Gris',r:'Alsace · Pinot Gris',cep:'Pinot Gris',g:'2-8 ans',d:'Ample et fumé, fruits mûrs, parfois moelleux.',v:[30,50,45,70,8]},
+  {n:'Condrieu',r:'Rhône nord · Viognier',cep:'Viognier',g:'1-4 ans',d:'Viognier opulent : abricot, fleurs, texture grasse.',v:[12,45,40,88,25]},
   {n:'Pessac-Léognan blanc',r:'Bordeaux · Sauv./Sémillon',g:'4-12 ans',d:'Blanc de garde boisé, agrumes et notes fumées.',v:[8,65,60,70,55]},
-  {n:'Sauternes',r:'Bordeaux · Sémillon liq.',g:'10-30 ans',d:'Liquoreux noble : miel, abricot, fraîcheur en finale.',v:[95,60,35,85,45]},
+  {n:'Sauternes',r:'Bordeaux · Sémillon liq.',cep:'Sémillon',g:'10-30 ans',d:'Liquoreux noble : miel, abricot, fraîcheur en finale.',v:[95,60,35,85,45]},
   {n:'Jurançon',r:'Sud-Ouest · Petit Manseng',g:'3-12 ans',d:'Du sec nerveux au moelleux exotique, très vif.',v:[45,75,55,70,15]},
   {n:'Muscadet',r:'Loire · Melon de B.',g:'1-5 ans',d:'Sec iodé et léger, parfait sur les coquillages.',v:[4,80,75,40,5]},
-  {n:'Chassagne-Montrachet',r:'Bourgogne · Chardonnay',g:'4-10 ans',d:'Riche et minéral, fruits à coque, élevage soigné.',v:[7,60,70,65,55]},
-  {n:'Mâcon-Villages',r:'Mâconnais · Chardonnay',g:'1-3 ans',d:'Chardonnay simple et frais, fruits blancs, bon rapport.',v:[8,55,50,55,20]},
+  {n:'Chassagne-Montrachet',r:'Bourgogne · Chardonnay',cep:'Chardonnay',g:'4-10 ans',d:'Riche et minéral, fruits à coque, élevage soigné.',v:[7,60,70,65,55]},
+  {n:'Mâcon-Villages',r:'Mâconnais · Chardonnay',cep:'Chardonnay',g:'1-3 ans',d:'Chardonnay simple et frais, fruits blancs, bon rapport.',v:[8,55,50,55,20]},
   {n:'Cassis blanc',r:'Provence · Marsanne/Clairette',g:'1-4 ans',d:'Blanc marin, herbes de Provence, fenouil, salin.',v:[8,60,65,60,12]},
   {n:'Côtes du Rhône blanc',r:'Rhône · Grenache blanc+',g:'1-3 ans',d:'Rond et floral, fruits mûrs, faible acidité.',v:[10,45,40,65,20]},
  ],
  effervescent:[
   {n:'Champagne Brut sans année',r:'Champagne · assemblage',g:'1-3 ans',d:'Le standard : pomme, brioche, bulle fine, dosage discret.',v:[25,80,80,60,75]},
-  {n:'Champagne Blanc de Blancs',r:'Champagne · Chardonnay',g:'2-6 ans',d:'100% Chardonnay : ciselé, crayeux, agrumes, grande finesse.',v:[18,85,88,60,80]},
+  {n:'Champagne Blanc de Blancs',r:'Champagne · Chardonnay',cep:'Chardonnay',g:'2-6 ans',d:'100% Chardonnay : ciselé, crayeux, agrumes, grande finesse.',v:[18,85,88,60,80]},
   {n:'Champagne Blanc de Noirs',r:'Champagne · Pinots',g:'2-5 ans',d:'Plus vineux et charnu, fruits rouges, vinosité.',v:[25,70,70,70,75]},
   {n:'Champagne Rosé',r:'Champagne · assemblage',g:'1-4 ans',d:'Fruits rouges, gourmand, bulle fine, gastronomique.',v:[30,72,75,72,72]},
   {n:'Champagne Extra-Brut',r:'Champagne · faible dosage',g:'1-4 ans',d:'Sec et droit, pureté, met le terroir en avant.',v:[8,88,82,58,78]},
   {n:'Champagne Millésimé',r:'Champagne · une année',g:'5-15 ans',d:'Plus dense et complexe, notes torréfiées, longue garde.',v:[22,78,82,70,90]},
   {n:'Crémant d\'Alsace',r:'Alsace · méthode trad.',g:'1-3 ans',d:'Frais et fruité, bon rapport, excellent apéritif.',v:[28,70,65,60,50]},
   {n:'Crémant de Bourgogne',r:'Bourgogne · méthode trad.',g:'1-3 ans',d:'Le plus proche du Champagne en style, vineux.',v:[28,68,68,58,55]},
-  {n:'Crémant de Loire',r:'Loire · Chenin',g:'1-3 ans',d:'Chenin pétillant : pomme, fleurs, vif et tendre.',v:[30,68,62,60,48]},
+  {n:'Crémant de Loire',r:'Loire · Chenin',cep:'Chenin Blanc',g:'1-3 ans',d:'Chenin pétillant : pomme, fleurs, vif et tendre.',v:[30,68,62,60,48]},
   {n:'Crémant de Limoux',r:'Languedoc · Mauzac/Chard.',g:'1-3 ans',d:'Du sud, rond et fruité, l\'un des plus anciens effervescents.',v:[30,65,65,62,55]},
-  {n:'Vouvray pétillant',r:'Loire · Chenin',g:'1-4 ans',d:'Bulle douce, coing et miel, souvent demi-sec.',v:[35,72,58,62,50]},
-  {n:'Clairette de Die',r:'Rhône · Muscat',g:'1-2 ans',d:'Doux et muscaté, peu d\'alcool, festif et floral.',v:[60,55,50,75,35]},
+  {n:'Vouvray pétillant',r:'Loire · Chenin',cep:'Chenin Blanc',g:'1-4 ans',d:'Bulle douce, coing et miel, souvent demi-sec.',v:[35,72,58,62,50]},
+  {n:'Clairette de Die',r:'Rhône · Muscat',cep:'Muscat',g:'1-2 ans',d:'Doux et muscaté, peu d\'alcool, festif et floral.',v:[60,55,50,75,35]},
  ],
 },
 ES:{
  rouge:[
-  {n:'Rioja Reserva',r:'Rioja · Tempranillo',g:'5-15 ans',d:'Le classique : fruit, vanille, cuir, élevage long en fût.',v:[65,60,58,55,75]},
-  {n:'Rioja Gran Reserva',r:'Rioja · Tempranillo',g:'8-25 ans',d:'Patiné et tertiaire, tabac et cuir, longue garde.',v:[68,62,58,48,85]},
-  {n:'Rioja Crianza',r:'Rioja · Tempranillo',g:'2-8 ans',d:'Plus jeune et fruité, boisé léger, accessible.',v:[60,55,58,62,60]},
-  {n:'Ribera del Duero',r:'Ribera · Tinto Fino',g:'5-15 ans',d:'Tempranillo concentré, fruits noirs, puissance et fraîcheur.',v:[78,72,55,60,78]},
+  {n:'Rioja Reserva',r:'Rioja · Tempranillo',cep:'Tempranillo',g:'5-15 ans',d:'Le classique : fruit, vanille, cuir, élevage long en fût.',v:[65,60,58,55,75]},
+  {n:'Rioja Gran Reserva',r:'Rioja · Tempranillo',cep:'Tempranillo',g:'8-25 ans',d:'Patiné et tertiaire, tabac et cuir, longue garde.',v:[68,62,58,48,85]},
+  {n:'Rioja Crianza',r:'Rioja · Tempranillo',cep:'Tempranillo',g:'2-8 ans',d:'Plus jeune et fruité, boisé léger, accessible.',v:[60,55,58,62,60]},
+  {n:'Ribera del Duero',r:'Ribera · Tinto Fino',cep:'Tempranillo',g:'5-15 ans',d:'Tempranillo concentré, fruits noirs, puissance et fraîcheur.',v:[78,72,55,60,78]},
   {n:'Priorat',r:'Catalogne · Garnacha/Cariñena',g:'6-18 ans',d:'Sol de licorella : dense, minéral, très puissant.',v:[88,80,55,62,82]},
-  {n:'Montsant',r:'Catalogne · Garnacha',g:'3-8 ans',d:'Le voisin abordable du Priorat, charnu et épicé.',v:[78,65,55,68,65]},
-  {n:'Toro',r:'Castille · Tinta de Toro',g:'4-12 ans',d:'Solaire et costaud, fruits noirs mûrs, alcool généreux.',v:[85,78,50,68,65]},
-  {n:'Jumilla',r:'Murcie · Monastrell',g:'2-8 ans',d:'Monastrell mûr et chaleureux, fruits noirs confits.',v:[80,68,48,75,55]},
-  {n:'Bierzo',r:'León · Mencía',g:'3-10 ans',d:'Mencía fraîche et florale, mi-corps, finesse atlantique.',v:[62,58,65,65,70]},
-  {n:'Navarra',r:'Navarre · Garnacha',g:'2-6 ans',d:'Grenache fruité et souple, gourmand, bon rapport.',v:[65,55,52,70,50]},
-  {n:'Campo de Borja',r:'Aragon · Garnacha',g:'2-6 ans',d:'Royaume de la Garnacha : fruité juteux, abordable.',v:[72,55,50,78,50]},
+  {n:'Montsant',r:'Catalogne · Garnacha',cep:'Grenache',g:'3-8 ans',d:'Le voisin abordable du Priorat, charnu et épicé.',v:[78,65,55,68,65]},
+  {n:'Toro',r:'Castille · Tinta de Toro',cep:'Tempranillo',g:'4-12 ans',d:'Solaire et costaud, fruits noirs mûrs, alcool généreux.',v:[85,78,50,68,65]},
+  {n:'Jumilla',r:'Murcie · Monastrell',cep:'Mourvèdre',g:'2-8 ans',d:'Monastrell mûr et chaleureux, fruits noirs confits.',v:[80,68,48,75,55]},
+  {n:'Bierzo',r:'León · Mencía',cep:'Mencía',g:'3-10 ans',d:'Mencía fraîche et florale, mi-corps, finesse atlantique.',v:[62,58,65,65,70]},
+  {n:'Navarra',r:'Navarre · Garnacha',cep:'Grenache',g:'2-6 ans',d:'Grenache fruité et souple, gourmand, bon rapport.',v:[65,55,52,70,50]},
+  {n:'Campo de Borja',r:'Aragon · Garnacha',cep:'Grenache',g:'2-6 ans',d:'Royaume de la Garnacha : fruité juteux, abordable.',v:[72,55,50,78,50]},
   {n:'Cariñena',r:'Aragon · Garnacha/Cariñena',g:'2-6 ans',d:'Rouge généreux et épicé, sans détour, gourmand.',v:[70,60,52,70,48]},
-  {n:'Yecla',r:'Murcie · Monastrell',g:'2-7 ans',d:'Monastrell solaire, dense et fruité, prix doux.',v:[78,65,48,75,52]},
-  {n:'Ribeira Sacra',r:'Galice · Mencía',g:'2-8 ans',d:'Mencía de coteaux escarpés, frais, élégant, minéral.',v:[58,55,68,62,68]},
-  {n:'La Mancha',r:'Castille · Tempranillo',g:'1-4 ans',d:'Le rouge de soif espagnol : souple, fruité, simple.',v:[60,50,50,68,40]},
-  {n:'Valdepeñas',r:'Castille · Tempranillo',g:'1-5 ans',d:'Léger et fruité, élevage parfois long, très abordable.',v:[58,48,52,65,45]},
+  {n:'Yecla',r:'Murcie · Monastrell',cep:'Mourvèdre',g:'2-7 ans',d:'Monastrell solaire, dense et fruité, prix doux.',v:[78,65,48,75,52]},
+  {n:'Ribeira Sacra',r:'Galice · Mencía',cep:'Mencía',g:'2-8 ans',d:'Mencía de coteaux escarpés, frais, élégant, minéral.',v:[58,55,68,62,68]},
+  {n:'La Mancha',r:'Castille · Tempranillo',cep:'Tempranillo',g:'1-4 ans',d:'Le rouge de soif espagnol : souple, fruité, simple.',v:[60,50,50,68,40]},
+  {n:'Valdepeñas',r:'Castille · Tempranillo',cep:'Tempranillo',g:'1-5 ans',d:'Léger et fruité, élevage parfois long, très abordable.',v:[58,48,52,65,45]},
   {n:'Penedès rouge',r:'Catalogne · cépages variés',g:'2-7 ans',d:'Mosaïque de styles, du frais au structuré.',v:[62,55,55,62,55]},
   {n:'Somontano',r:'Aragon · int. + locaux',g:'2-7 ans',d:'Région moderne, rouges fruités et équilibrés.',v:[65,58,55,65,55]},
-  {n:'Calatayud',r:'Aragon · Garnacha',g:'2-7 ans',d:'Vieilles vignes de Garnacha, fruité intense, valeur sûre.',v:[75,58,50,75,52]},
-  {n:'Cigales',r:'Castille · Tempranillo',g:'2-6 ans',d:'Voisin discret de Ribera, fruité et droit.',v:[62,55,55,65,50]},
+  {n:'Calatayud',r:'Aragon · Garnacha',cep:'Grenache',g:'2-7 ans',d:'Vieilles vignes de Garnacha, fruité intense, valeur sûre.',v:[75,58,50,75,52]},
+  {n:'Cigales',r:'Castille · Tempranillo',cep:'Tempranillo',g:'2-6 ans',d:'Voisin discret de Ribera, fruité et droit.',v:[62,55,55,65,50]},
  ],
  blanc:[
-  {n:'Rías Baixas',r:'Galice · Albariño',g:'1-5 ans',d:'Albariño salin et vibrant, agrumes, brise atlantique.',v:[6,80,75,70,5]},
-  {n:'Rueda',r:'Castille · Verdejo',g:'1-3 ans',d:'Verdejo aromatique, fenouil, agrumes, vif et net.',v:[6,72,60,70,8]},
-  {n:'Rioja blanco',r:'Rioja · Viura',g:'2-10 ans',d:'Du frais au boisé patiné, pomme, amande, parfois oxydatif.',v:[8,55,55,55,35]},
-  {n:'Valdeorras',r:'Galice · Godello',g:'2-7 ans',d:'Godello texturé et minéral, fruits blancs, profondeur.',v:[6,68,68,60,20]},
-  {n:'Ribeiro',r:'Galice · Treixadura',g:'1-4 ans',d:'Blanc atlantique frais, floral et fruité, finesse.',v:[6,70,62,62,5]},
-  {n:'Txakoli',r:'Pays basque · Hondarrabi Z.',g:'1-2 ans',d:'Très vif, légèrement perlant, agrumes, faible alcool.',v:[5,88,70,60,3]},
+  {n:'Rías Baixas',r:'Galice · Albariño',cep:'Albariño',g:'1-5 ans',d:'Albariño salin et vibrant, agrumes, brise atlantique.',v:[6,80,75,70,5]},
+  {n:'Rueda',r:'Castille · Verdejo',cep:'Verdejo',g:'1-3 ans',d:'Verdejo aromatique, fenouil, agrumes, vif et net.',v:[6,72,60,70,8]},
+  {n:'Rioja blanco',r:'Rioja · Viura',cep:'Viura',g:'2-10 ans',d:'Du frais au boisé patiné, pomme, amande, parfois oxydatif.',v:[8,55,55,55,35]},
+  {n:'Valdeorras',r:'Galice · Godello',cep:'Godello',g:'2-7 ans',d:'Godello texturé et minéral, fruits blancs, profondeur.',v:[6,68,68,60,20]},
+  {n:'Ribeiro',r:'Galice · Treixadura',cep:'Treixadura',g:'1-4 ans',d:'Blanc atlantique frais, floral et fruité, finesse.',v:[6,70,62,62,5]},
+  {n:'Txakoli',r:'Pays basque · Hondarrabi Z.',cep:'Hondarrabi Zuri',g:'1-2 ans',d:'Très vif, légèrement perlant, agrumes, faible alcool.',v:[5,88,70,60,3]},
   {n:'Penedès blanco',r:'Catalogne · Xarel·lo',g:'1-4 ans',d:'Cépage du Cava en sec : herbes, agrumes, structure.',v:[6,65,58,55,10]},
-  {n:'Godello del Bierzo',r:'León · Godello',g:'2-6 ans',d:'Godello fin et minéral, fruits blancs, belle tension.',v:[6,65,65,60,18]},
+  {n:'Godello del Bierzo',r:'León · Godello',cep:'Godello',g:'2-6 ans',d:'Godello fin et minéral, fruits blancs, belle tension.',v:[6,65,65,60,18]},
   {n:'Somontano blanco',r:'Aragon · Chard./locaux',g:'1-4 ans',d:'Frais et fruité, parfois boisé, style moderne.',v:[8,60,50,60,15]},
-  {n:'Rueda barrica',r:'Castille · Verdejo fût',g:'2-6 ans',d:'Verdejo élevé en fût : plus ample, vanillé, gastronomique.',v:[7,60,55,65,40]},
+  {n:'Rueda barrica',r:'Castille · Verdejo fût',cep:'Verdejo',g:'2-6 ans',d:'Verdejo élevé en fût : plus ample, vanillé, gastronomique.',v:[7,60,55,65,40]},
   {n:'Malvasía (Canaries)',r:'Canaries · Malvasía',g:'1-5 ans',d:'Aromatique et exotique, sol volcanique, parfois moelleux.',v:[15,60,60,72,8]},
   {n:'Listán Blanco (Canaries)',r:'Canaries · Listán',g:'1-4 ans',d:'Volcanique et salin, agrumes, signature minérale unique.',v:[6,70,72,60,5]},
  ],
@@ -357,86 +407,86 @@ ES:{
 },
 IT:{
  rouge:[
-  {n:'Barolo',r:'Piémont · Nebbiolo',g:'8-20 ans',d:'Le « roi » : tanin et acidité élevés, rose, goudron, garde.',v:[80,90,78,50,90]},
-  {n:'Barbaresco',r:'Piémont · Nebbiolo',g:'6-18 ans',d:'Frère plus accessible du Barolo, parfumé et élégant.',v:[72,80,78,52,85]},
-  {n:'Brunello di Montalcino',r:'Toscane · Sangiovese',g:'8-25 ans',d:'Sangiovese majestueux, cerise, cuir, longue garde.',v:[78,80,72,55,88]},
-  {n:'Chianti Classico',r:'Toscane · Sangiovese',g:'3-10 ans',d:'Cerise acidulée, herbes, le compagnon de table italien.',v:[60,65,78,62,65]},
-  {n:'Vino Nobile di Montepulciano',r:'Toscane · Sangiovese',g:'4-12 ans',d:'Cousin charnu du Chianti, fruit mûr et structure.',v:[65,68,72,58,70]},
+  {n:'Barolo',r:'Piémont · Nebbiolo',cep:'Nebbiolo',g:'8-20 ans',d:'Le « roi » : tanin et acidité élevés, rose, goudron, garde.',v:[80,90,78,50,90]},
+  {n:'Barbaresco',r:'Piémont · Nebbiolo',cep:'Nebbiolo',g:'6-18 ans',d:'Frère plus accessible du Barolo, parfumé et élégant.',v:[72,80,78,52,85]},
+  {n:'Brunello di Montalcino',r:'Toscane · Sangiovese',cep:'Sangiovese',g:'8-25 ans',d:'Sangiovese majestueux, cerise, cuir, longue garde.',v:[78,80,72,55,88]},
+  {n:'Chianti Classico',r:'Toscane · Sangiovese',cep:'Sangiovese',g:'3-10 ans',d:'Cerise acidulée, herbes, le compagnon de table italien.',v:[60,65,78,62,65]},
+  {n:'Vino Nobile di Montepulciano',r:'Toscane · Sangiovese',cep:'Sangiovese',g:'4-12 ans',d:'Cousin charnu du Chianti, fruit mûr et structure.',v:[65,68,72,58,70]},
   {n:'Bolgheri / Super Toscan',r:'Toscane · Cab./Merlot',g:'6-18 ans',d:'Style bordelais au soleil toscan : dense, racé, boisé.',v:[78,75,60,60,82]},
-  {n:'Amarone della Valpolicella',r:'Vénétie · raisins passerillés',g:'8-25 ans',d:'Opulent et puissant, fruits confits, chocolat, chaleur.',v:[92,70,55,75,80]},
-  {n:'Valpolicella Ripasso',r:'Vénétie · Corvina',g:'3-8 ans',d:'« Petit Amarone » : charnu, cerise, épices, accessible.',v:[70,55,60,72,60]},
-  {n:'Valpolicella Classico',r:'Vénétie · Corvina',g:'1-4 ans',d:'Léger et croquant, cerise fraîche, à boire jeune.',v:[50,45,65,70,45]},
-  {n:'Montepulciano d\'Abruzzo',r:'Abruzzes · Montepulciano',g:'2-8 ans',d:'Souple et juteux, fruits noirs, le rouge convivial.',v:[65,55,55,72,50]},
-  {n:'Primitivo di Manduria',r:'Pouilles · Primitivo',g:'2-8 ans',d:'Solaire et confituré, alcool généreux, rondeur.',v:[80,55,45,82,55]},
-  {n:'Nero d\'Avola',r:'Sicile · Nero d\'Avola',g:'2-8 ans',d:'Fruité chaleureux, prune, épices, soleil sicilien.',v:[72,55,52,75,55]},
-  {n:'Etna Rosso',r:'Sicile · Nerello Mascalese',g:'4-12 ans',d:'« Le Bourgogne du Sud » : volcanique, fin, tendu.',v:[58,60,72,58,78]},
-  {n:'Aglianico del Vulture',r:'Basilicate · Aglianico',g:'6-18 ans',d:'Tanin et acidité fermes, sol volcanique, garde.',v:[80,82,70,55,75]},
-  {n:'Taurasi',r:'Campanie · Aglianico',g:'8-20 ans',d:'« Barolo du Sud » : structuré, austère jeune, grande garde.',v:[82,85,72,52,82]},
-  {n:'Barbera d\'Asti',r:'Piémont · Barbera',g:'2-8 ans',d:'Acidité vive, peu de tanin, cerise juteuse, gourmand.',v:[60,40,82,70,55]},
-  {n:'Dolcetto d\'Alba',r:'Piémont · Dolcetto',g:'1-4 ans',d:'Souple et fruité, faible acidité, à boire jeune.',v:[55,50,50,72,40]},
+  {n:'Amarone della Valpolicella',r:'Vénétie · raisins passerillés',cep:'Corvina',g:'8-25 ans',d:'Opulent et puissant, fruits confits, chocolat, chaleur.',v:[92,70,55,75,80]},
+  {n:'Valpolicella Ripasso',r:'Vénétie · Corvina',cep:'Corvina',g:'3-8 ans',d:'« Petit Amarone » : charnu, cerise, épices, accessible.',v:[70,55,60,72,60]},
+  {n:'Valpolicella Classico',r:'Vénétie · Corvina',cep:'Corvina',g:'1-4 ans',d:'Léger et croquant, cerise fraîche, à boire jeune.',v:[50,45,65,70,45]},
+  {n:'Montepulciano d\'Abruzzo',r:'Abruzzes · Montepulciano',cep:'Montepulciano',g:'2-8 ans',d:'Souple et juteux, fruits noirs, le rouge convivial.',v:[65,55,55,72,50]},
+  {n:'Primitivo di Manduria',r:'Pouilles · Primitivo',cep:'Primitivo',g:'2-8 ans',d:'Solaire et confituré, alcool généreux, rondeur.',v:[80,55,45,82,55]},
+  {n:'Nero d\'Avola',r:'Sicile · Nero d\'Avola',cep:'Nero d\'Avola',g:'2-8 ans',d:'Fruité chaleureux, prune, épices, soleil sicilien.',v:[72,55,52,75,55]},
+  {n:'Etna Rosso',r:'Sicile · Nerello Mascalese',cep:'Nerello Mascalese',g:'4-12 ans',d:'« Le Bourgogne du Sud » : volcanique, fin, tendu.',v:[58,60,72,58,78]},
+  {n:'Aglianico del Vulture',r:'Basilicate · Aglianico',cep:'Aglianico',g:'6-18 ans',d:'Tanin et acidité fermes, sol volcanique, garde.',v:[80,82,70,55,75]},
+  {n:'Taurasi',r:'Campanie · Aglianico',cep:'Aglianico',g:'8-20 ans',d:'« Barolo du Sud » : structuré, austère jeune, grande garde.',v:[82,85,72,52,82]},
+  {n:'Barbera d\'Asti',r:'Piémont · Barbera',cep:'Barbera',g:'2-8 ans',d:'Acidité vive, peu de tanin, cerise juteuse, gourmand.',v:[60,40,82,70,55]},
+  {n:'Dolcetto d\'Alba',r:'Piémont · Dolcetto',cep:'Dolcetto',g:'1-4 ans',d:'Souple et fruité, faible acidité, à boire jeune.',v:[55,50,50,72,40]},
   {n:'Lagrein',r:'Haut-Adige · Lagrein',g:'3-8 ans',d:'Sombre et velouté, mûre, chocolat, fraîcheur alpine.',v:[70,65,58,65,55]},
   {n:'Sagrantino di Montefalco',r:'Ombrie · Sagrantino',g:'8-20 ans',d:'Le plus tannique d\'Italie, dense, taillé pour la garde.',v:[85,92,68,58,78]},
-  {n:'Cannonau di Sardegna',r:'Sardaigne · Grenache',g:'3-8 ans',d:'Grenache méditerranéen, herbes, fruits mûrs, chaleur.',v:[72,55,50,72,55]},
+  {n:'Cannonau di Sardegna',r:'Sardaigne · Grenache',cep:'Grenache',g:'3-8 ans',d:'Grenache méditerranéen, herbes, fruits mûrs, chaleur.',v:[72,55,50,72,55]},
  ],
  blanc:[
-  {n:'Soave',r:'Vénétie · Garganega',g:'1-5 ans',d:'Sec et floral, amande, poire, élégance discrète.',v:[6,60,60,55,10]},
+  {n:'Soave',r:'Vénétie · Garganega',cep:'Garganega',g:'1-5 ans',d:'Sec et floral, amande, poire, élégance discrète.',v:[6,60,60,55,10]},
   {n:'Verdicchio dei Castelli di Jesi',r:'Marches · Verdicchio',g:'2-8 ans',d:'Vif et structuré, amande amère, beau potentiel.',v:[5,70,65,55,10]},
-  {n:'Gavi',r:'Piémont · Cortese',g:'1-4 ans',d:'Sec et tendu, agrumes, pomme verte, salin.',v:[4,72,65,50,5]},
-  {n:'Vermentino di Sardegna',r:'Sardaigne · Vermentino',g:'1-4 ans',d:'Salin et herbacé, agrumes, parfait sur le poisson.',v:[5,65,60,60,5]},
+  {n:'Gavi',r:'Piémont · Cortese',cep:'Cortese',g:'1-4 ans',d:'Sec et tendu, agrumes, pomme verte, salin.',v:[4,72,65,50,5]},
+  {n:'Vermentino di Sardegna',r:'Sardaigne · Vermentino',cep:'Vermentino',g:'1-4 ans',d:'Salin et herbacé, agrumes, parfait sur le poisson.',v:[5,65,60,60,5]},
   {n:'Fiano di Avellino',r:'Campanie · Fiano',g:'2-8 ans',d:'Ample et complexe, noisette, fleurs, miel léger.',v:[6,60,62,65,12]},
   {n:'Greco di Tufo',r:'Campanie · Greco',g:'2-8 ans',d:'Minéral et structuré, pêche, fumé, belle garde.',v:[5,68,68,60,10]},
   {n:'Falanghina',r:'Campanie · Falanghina',g:'1-4 ans',d:'Frais et floral, agrumes, accessible et désaltérant.',v:[6,62,50,60,5]},
-  {n:'Pinot Grigio (Haut-Adige)',r:'Haut-Adige · Pinot Grigio',g:'1-3 ans',d:'Net et croquant, poire, plus de relief qu\'au sud.',v:[5,60,55,45,5]},
+  {n:'Pinot Grigio (Haut-Adige)',r:'Haut-Adige · Pinot Grigio',cep:'Pinot Gris',g:'1-3 ans',d:'Net et croquant, poire, plus de relief qu\'au sud.',v:[5,60,55,45,5]},
   {n:'Friulano',r:'Frioul · Friulano',g:'1-5 ans',d:'Amande et herbe coupée, texture, signature du Frioul.',v:[5,60,55,60,10]},
   {n:'Lugana',r:'Lombardie/Vénétie · Turbiana',g:'1-5 ans',d:'Rond et minéral, fruits blancs, finale saline.',v:[6,62,60,58,10]},
-  {n:'Etna Bianco',r:'Sicile · Carricante',g:'2-8 ans',d:'Volcanique et tendu, agrumes, grande minéralité.',v:[5,75,78,55,12]},
-  {n:'Vermentino di Gallura',r:'Sardaigne · Vermentino',g:'1-4 ans',d:'La version la plus aromatique, salin, intense.',v:[5,68,62,65,5]},
+  {n:'Etna Bianco',r:'Sicile · Carricante',cep:'Carricante',g:'2-8 ans',d:'Volcanique et tendu, agrumes, grande minéralité.',v:[5,75,78,55,12]},
+  {n:'Vermentino di Gallura',r:'Sardaigne · Vermentino',cep:'Vermentino',g:'1-4 ans',d:'La version la plus aromatique, salin, intense.',v:[5,68,62,65,5]},
   {n:'Ribolla Gialla',r:'Frioul · Ribolla',g:'1-5 ans',d:'Vif et minéral, agrumes, parfois macéré (orange).',v:[5,65,60,55,12]},
-  {n:'Vernaccia di San Gimignano',r:'Toscane · Vernaccia',g:'1-4 ans',d:'Sec et amer en finale, fleurs, amande, historique.',v:[5,62,58,50,8]},
-  {n:'Trebbiano d\'Abruzzo',r:'Abruzzes · Trebbiano',g:'1-6 ans',d:'Du neutre simple au grand vin minéral selon le domaine.',v:[5,58,52,48,8]},
+  {n:'Vernaccia di San Gimignano',r:'Toscane · Vernaccia',cep:'Vernaccia',g:'1-4 ans',d:'Sec et amer en finale, fleurs, amande, historique.',v:[5,62,58,50,8]},
+  {n:'Trebbiano d\'Abruzzo',r:'Abruzzes · Trebbiano',cep:'Trebbiano',g:'1-6 ans',d:'Du neutre simple au grand vin minéral selon le domaine.',v:[5,58,52,48,8]},
   {n:'Orvieto',r:'Ombrie · Grechetto+',g:'1-3 ans',d:'Sec et léger, fleurs blanches, fruité tendre.',v:[10,55,50,50,5]},
   {n:'Frascati',r:'Latium · Malvasia',g:'1-2 ans',d:'Le blanc romain : souple, floral, à boire jeune.',v:[8,55,45,50,5]},
   {n:'Kerner (Haut-Adige)',r:'Haut-Adige · Kerner',g:'1-4 ans',d:'Aromatique et nerveux, agrumes, pureté alpine.',v:[8,70,60,70,5]},
   {n:'Vin Santo',r:'Toscane · raisins séchés',g:'5-20 ans',d:'Doux ambré : noix, abricot, caramel, vin de méditation.',v:[90,50,35,80,40]},
-  {n:'Müller-Thurgau (Haut-Adige)',r:'Haut-Adige · Müller-Thurgau',g:'1-3 ans',d:'Léger et floral d\'altitude, muscaté, vif.',v:[7,68,55,60,3]},
+  {n:'Müller-Thurgau (Haut-Adige)',r:'Haut-Adige · Müller-Thurgau',cep:'Müller-Thurgau',g:'1-3 ans',d:'Léger et floral d\'altitude, muscaté, vif.',v:[7,68,55,60,3]},
  ],
  effervescent:[
   {n:'Franciacorta',r:'Lombardie · méthode trad.',g:'2-8 ans',d:'Le « Champagne italien » : fin, brioché, grande classe.',v:[20,78,82,60,80]},
-  {n:'Franciacorta Satèn',r:'Lombardie · Chardonnay',g:'2-7 ans',d:'Pression douce, crémeux et soyeux, blanc de blancs.',v:[18,70,85,60,75]},
+  {n:'Franciacorta Satèn',r:'Lombardie · Chardonnay',cep:'Chardonnay',g:'2-7 ans',d:'Pression douce, crémeux et soyeux, blanc de blancs.',v:[18,70,85,60,75]},
   {n:'Trentodoc',r:'Trentin · méthode trad.',g:'2-8 ans',d:'Montagne et fraîcheur, fine bulle, ciselé et précis.',v:[20,78,80,58,78]},
-  {n:'Prosecco Superiore (Valdobbiadene)',r:'Vénétie · Glera',g:'1-3 ans',d:'Le meilleur Prosecco : poire, fleurs, plus de finesse.',v:[30,65,58,68,45]},
-  {n:'Prosecco DOC',r:'Vénétie · Glera',g:'1-2 ans',d:'Léger et fruité, cuve close, apéritif facile.',v:[35,60,50,65,35]},
-  {n:'Lambrusco secco',r:'Émilie · Lambrusco',g:'1-3 ans',d:'Rouge pétillant, vif et fruité, parfait sur la charcuterie.',v:[30,65,45,60,35]},
-  {n:'Asti Spumante',r:'Piémont · Moscato',g:'1-2 ans',d:'Doux et muscaté, festif, faible en alcool.',v:[75,50,45,88,30]},
-  {n:'Moscato d\'Asti',r:'Piémont · Moscato',g:'1-2 ans',d:'Légèrement perlant, très doux, raisin et fleurs.',v:[80,55,40,90,30]},
+  {n:'Prosecco Superiore (Valdobbiadene)',r:'Vénétie · Glera',cep:'Glera',g:'1-3 ans',d:'Le meilleur Prosecco : poire, fleurs, plus de finesse.',v:[30,65,58,68,45]},
+  {n:'Prosecco DOC',r:'Vénétie · Glera',cep:'Glera',g:'1-2 ans',d:'Léger et fruité, cuve close, apéritif facile.',v:[35,60,50,65,35]},
+  {n:'Lambrusco secco',r:'Émilie · Lambrusco',cep:'Lambrusco',g:'1-3 ans',d:'Rouge pétillant, vif et fruité, parfait sur la charcuterie.',v:[30,65,45,60,35]},
+  {n:'Asti Spumante',r:'Piémont · Moscato',cep:'Muscat',g:'1-2 ans',d:'Doux et muscaté, festif, faible en alcool.',v:[75,50,45,88,30]},
+  {n:'Moscato d\'Asti',r:'Piémont · Moscato',cep:'Muscat',g:'1-2 ans',d:'Légèrement perlant, très doux, raisin et fleurs.',v:[80,55,40,90,30]},
  ],
 },
 CH:{
  rouge:[
-  {n:'Pinot Noir',r:'Valais/Grisons/Vaud',g:'3-10 ans',d:'Le grand rouge suisse : fin, cerise, fraîcheur alpine.',v:[50,50,65,62,65]},
-  {n:'Gamay',r:'Valais/Vaud',g:'1-4 ans',d:'Léger et fruité, fruits rouges croquants, à boire jeune.',v:[45,40,62,75,45]},
+  {n:'Pinot Noir',r:'Valais/Grisons/Vaud',cep:'Pinot Noir',g:'3-10 ans',d:'Le grand rouge suisse : fin, cerise, fraîcheur alpine.',v:[50,50,65,62,65]},
+  {n:'Gamay',r:'Valais/Vaud',cep:'Gamay',g:'1-4 ans',d:'Léger et fruité, fruits rouges croquants, à boire jeune.',v:[45,40,62,75,45]},
   {n:'Dôle',r:'Valais · Pinot+Gamay',g:'2-5 ans',d:'Assemblage valaisan classique, souple et gourmand.',v:[52,48,62,68,55]},
-  {n:'Merlot',r:'Tessin',g:'3-10 ans',d:'La signature tessinoise : rond, velouté, fruits noirs.',v:[68,60,55,62,70]},
+  {n:'Merlot',r:'Tessin',cep:'Merlot',g:'3-10 ans',d:'La signature tessinoise : rond, velouté, fruits noirs.',v:[68,60,55,62,70]},
   {n:'Cornalin',r:'Valais · cépage indigène',g:'3-8 ans',d:'Spécialité valaisanne : épicé, fruits noirs, caractère.',v:[70,65,62,65,68]},
   {n:'Humagne Rouge',r:'Valais · cépage indigène',g:'3-8 ans',d:'Rustique et sauvage, gibier, notes terreuses.',v:[65,62,60,60,60]},
-  {n:'Syrah',r:'Valais',g:'4-12 ans',d:'Syrah de coteaux ensoleillés, poivrée et dense.',v:[75,68,58,60,75]},
+  {n:'Syrah',r:'Valais',cep:'Syrah',g:'4-12 ans',d:'Syrah de coteaux ensoleillés, poivrée et dense.',v:[75,68,58,60,75]},
   {n:'Gamaret',r:'Suisse · croisement moderne',g:'2-6 ans',d:'Coloré et structuré, souvent en assemblage, épicé.',v:[62,60,58,65,55]},
   {n:'Garanoir',r:'Suisse · croisement moderne',g:'1-4 ans',d:'Souple et fruité, gourmand, à boire jeune.',v:[55,50,55,70,45]},
   {n:'Diolinoir',r:'Suisse · croisement moderne',g:'2-6 ans',d:'Sombre et charnu, fruits noirs, bonne couleur.',v:[65,60,55,62,50]},
  ],
  blanc:[
-  {n:'Fendant (Chasselas)',r:'Valais · Chasselas',g:'1-3 ans',d:'Le blanc emblème : discret, minéral, sur la fraîcheur.',v:[6,50,65,40,5]},
-  {n:'Chasselas (Lavaux/Dézaley)',r:'Vaud · Chasselas',g:'2-8 ans',d:'Plus de profondeur et de terroir, salin et complexe.',v:[6,55,72,45,8]},
+  {n:'Fendant (Chasselas)',r:'Valais · Chasselas',cep:'Chasselas',g:'1-3 ans',d:'Le blanc emblème : discret, minéral, sur la fraîcheur.',v:[6,50,65,40,5]},
+  {n:'Chasselas (Lavaux/Dézaley)',r:'Vaud · Chasselas',cep:'Chasselas',g:'2-8 ans',d:'Plus de profondeur et de terroir, salin et complexe.',v:[6,55,72,45,8]},
   {n:'Petite Arvine',r:'Valais · cépage indigène',g:'2-10 ans',d:'Le grand blanc valaisan : vif, salin, agrumes, glycine.',v:[12,78,75,70,10]},
-  {n:'Heida / Païen',r:'Valais · Savagnin',g:'2-8 ans',d:'Riche et structuré, fruits secs, vin d\'altitude.',v:[8,65,70,65,12]},
+  {n:'Heida / Païen',r:'Valais · Savagnin',cep:'Savagnin',g:'2-8 ans',d:'Riche et structuré, fruits secs, vin d\'altitude.',v:[8,65,70,65,12]},
   {n:'Amigne',r:'Valais (Vétroz) · indigène',g:'3-15 ans',d:'Du sec au moelleux, miel et agrumes confits, rare.',v:[35,60,60,65,10]},
-  {n:'Johannisberg (Sylvaner)',r:'Valais · Sylvaner',g:'1-4 ans',d:'Ample et tendre, fruits mûrs, parfois légèrement doux.',v:[12,55,55,55,8]},
-  {n:'Ermitage (Marsanne)',r:'Valais · Marsanne',g:'3-10 ans',d:'Gras et puissant, fruits secs, miel, vin de garde.',v:[15,50,55,65,25]},
-  {n:'Malvoisie (Pinot Gris)',r:'Valais · Pinot Gris',g:'2-10 ans',d:'Souvent moelleux, fruits confits, opulent.',v:[30,50,50,65,12]},
-  {n:'Chardonnay',r:'Suisse · Chardonnay',g:'2-6 ans',d:'Style international, souvent boisé, ample.',v:[7,55,55,58,40]},
-  {n:'Sauvignon Blanc',r:'Suisse · Sauvignon',g:'1-4 ans',d:'Aromatique et vif, agrumes, bourgeon de cassis.',v:[6,75,60,75,8]},
-  {n:'Riesling-Sylvaner',r:'Suisse aléma. · Müller-T.',g:'1-3 ans',d:'Léger et floral, muscaté, désaltérant.',v:[8,60,50,60,3]},
-  {n:'Pinot Blanc',r:'Suisse · Pinot Blanc',g:'1-4 ans',d:'Discret et frais, fruits blancs, polyvalent.',v:[7,55,50,50,8]},
+  {n:'Johannisberg (Sylvaner)',r:'Valais · Sylvaner',cep:'Sylvaner',g:'1-4 ans',d:'Ample et tendre, fruits mûrs, parfois légèrement doux.',v:[12,55,55,55,8]},
+  {n:'Ermitage (Marsanne)',r:'Valais · Marsanne',cep:'Marsanne',g:'3-10 ans',d:'Gras et puissant, fruits secs, miel, vin de garde.',v:[15,50,55,65,25]},
+  {n:'Malvoisie (Pinot Gris)',r:'Valais · Pinot Gris',cep:'Pinot Gris',g:'2-10 ans',d:'Souvent moelleux, fruits confits, opulent.',v:[30,50,50,65,12]},
+  {n:'Chardonnay',r:'Suisse · Chardonnay',cep:'Chardonnay',g:'2-6 ans',d:'Style international, souvent boisé, ample.',v:[7,55,55,58,40]},
+  {n:'Sauvignon Blanc',r:'Suisse · Sauvignon',cep:'Sauvignon Blanc',g:'1-4 ans',d:'Aromatique et vif, agrumes, bourgeon de cassis.',v:[6,75,60,75,8]},
+  {n:'Riesling-Sylvaner',r:'Suisse aléma. · Müller-T.',cep:'Müller-Thurgau',g:'1-3 ans',d:'Léger et floral, muscaté, désaltérant.',v:[8,60,50,60,3]},
+  {n:'Pinot Blanc',r:'Suisse · Pinot Blanc',cep:'Pinot Blanc',g:'1-4 ans',d:'Discret et frais, fruits blancs, polyvalent.',v:[7,55,50,50,8]},
  ],
  effervescent:[
   {n:'Mousseux suisse (méthode trad.)',r:'Suisse · Chardonnay/Pinot',g:'1-3 ans',d:'Production confidentielle ; fin et frais, style champenois.',v:[25,70,65,55,55]},
@@ -514,35 +564,62 @@ const CEPAGES = [
  {n:'Barbera',syn:'Piémont',c:'r',d:'Piémontais peu tannique mais très acidulé, gourmand et polyvalent à table.',t:'Cerise, prune, herbes, vive acidité'},
  {n:'Cabernet Franc',syn:'Loire / Bordeaux',c:'r',d:'Frais et digeste, vedette de la Loire et complément bordelais.',t:'Framboise, poivron, mine de crayon, violette'},
  {n:'Cabernet Sauvignon',syn:'Bordeaux / monde',c:'r',d:'Pilier du Médoc : tannique, structuré, grand vin de garde.',t:'Cassis, cèdre, tabac, menthe'},
+ {n:'Carignan',syn:'Cariñena',c:'r',d:'Vieilles vignes méditerranéennes, tannique et coloré, souvent en assemblage.',t:'Fruits noirs, garrigue, réglisse, poivre'},
+ {n:'Carricante',syn:'Etna (Sicile)',c:'b',d:'Cépage volcanique de l\'Etna, tendu et salin, grande aptitude à la garde.',t:'Citron, pomme verte, cendre, amande'},
  {n:'Chardonnay',syn:'Bourgogne / monde',c:'b',d:'Caméléon mondial, du Chablis tranchant au Meursault beurré.',t:'Pomme, agrumes, noisette, beurre'},
  {n:'Chasselas',syn:'Fendant (Suisse)',c:'b',d:'Cépage emblème suisse, discret, fidèle miroir de son terroir.',t:'Fleur blanche, amande, pierre, agrumes doux'},
  {n:'Chenin Blanc',syn:'Loire',c:'b',d:'Polyvalent ligérien (Vouvray, Savennières), du sec nerveux au liquoreux.',t:'Coing, pomme, miel, fleurs blanches'},
+ {n:'Cortese',syn:'Gavi (Piémont)',c:'b',d:'Cépage du Gavi, sec et tendu, profil discret et salin.',t:'Pomme verte, citron, amande fraîche, fleurs'},
+ {n:'Corvina',syn:'Valpolicella',c:'r',d:'Base de l\'Amarone et du Valpolicella, croquant ou concentré selon le séchage.',t:'Cerise, amande amère, épices, prune séchée'},
+ {n:'Dolcetto',syn:'Piémont',c:'r',d:'Souple et fruité, le rouge piémontais du quotidien, à boire jeune.',t:'Mûre, prune, amande, faible acidité'},
  {n:'Gamay',syn:'Beaujolais',c:'r',d:'Léger et juteux, à servir frais, le cépage du Beaujolais.',t:'Fraise, framboise, banane, fleurs'},
  {n:'Garganega',syn:'Soave (Vénétie)',c:'b',d:'Cépage du Soave : floral et amandé, élégance discrète.',t:'Amande, poire, fleur blanche, agrumes'},
  {n:'Gewurztraminer',syn:'Alsace',c:'b',d:'Alsacien explosif, riche et large, souvent demi-sec.',t:'Litchi, rose, épices, pain d\'épices'},
  {n:'Glera',syn:'Prosecco (Vénétie)',c:'b',d:'Le cépage du Prosecco : léger, désaltérant, en bulles.',t:'Poire, pomme verte, fleurs, agrumes'},
+ {n:'Godello',syn:'Galice / León',c:'b',d:'Blanc texturé du nord-ouest espagnol, en plein essor qualitatif.',t:'Fruits blancs, fleurs, pierre mouillée, anis'},
  {n:'Grenache',syn:'Garnacha',c:'r',d:'Méditerranéen et solaire (Rhône sud, Espagne), chaleureux et fruité.',t:'Fraise confite, garrigue, épices, poivre blanc'},
+ {n:'Hondarrabi Zuri',syn:'Txakoli (Pays basque)',c:'b',d:'Cépage atlantique très acide du Txakoli, vif et iodé.',t:'Citron vert, pomme verte, embruns, herbe'},
+ {n:'Lambrusco',syn:'Émilie',c:'r',d:'Cépage rouge pétillant d\'Émilie, croquant et désaltérant.',t:'Fraise, mûre, violette, légère amertume'},
  {n:'Malbec',syn:'Côt (Cahors)',c:'r',d:'Cépage de Cahors, sombre et rustique, à la couleur encrée.',t:'Mûre, prune, violette, cacao'},
+ {n:'Marsanne',syn:'Rhône / Valais',c:'b',d:'Blanc gras et puissant du Rhône, aussi cultivé en Suisse (Ermitage).',t:'Fruits secs, miel, amande, fleurs blanches'},
  {n:'Mencía',syn:'Galice / León',c:'r',d:'Frais et minéral sur coteaux schisteux (Bierzo, Ribeira Sacra).',t:'Cerise, grenade, poivre, fleurs'},
  {n:'Merlot',syn:'Bordeaux / Tessin',c:'r',d:'Rond et velouté, roi de la rive droite et signature du Tessin.',t:'Prune, cerise noire, chocolat, fruits mûrs'},
+ {n:'Montepulciano',syn:'Abruzzes',c:'r',d:'Cépage charnu et fruité du centre-est de l\'Italie, accessible et juteux.',t:'Fruits noirs, prune, épices douces, violette'},
  {n:'Mourvèdre',syn:'Monastrell',c:'r',d:'Tardif et tannique (Bandol, Jumilla), sauvage et puissant.',t:'Mûre, cuir, garrigue, gibier'},
+ {n:'Müller-Thurgau',syn:'Riesling-Sylvaner',c:'b',d:'Croisement précoce et léger, cultivé en altitude (Alpes, Allemagne).',t:'Muscat léger, fleurs blanches, pomme'},
  {n:'Muscat',syn:'Moscato',c:'b',d:'Famille très aromatique, déclinée en sec, doux ou pétillant.',t:'Raisin frais, fleur d\'oranger, rose, musc'},
  {n:'Nebbiolo',syn:'Piémont',c:'r',d:'L\'âme du Piémont (Barolo) : pâle de robe, tanin et acidité élevés.',t:'Rose, goudron, cerise, truffe'},
+ {n:'Nerello Mascalese',syn:'Etna (Sicile)',c:'r',d:'« Pinot Noir » volcanique de l\'Etna, fin et tendu, élégance rare.',t:'Cerise griotte, épices, fumé, fleurs'},
  {n:'Nero d\'Avola',syn:'Sicile',c:'r',d:'Cépage phare de Sicile, généreux et solaire.',t:'Prune, cerise noire, épices, réglisse'},
  {n:'Petite Arvine',syn:'Valais (Suisse)',c:'b',d:'Joyau valaisan, vif et salin, à la forte personnalité.',t:'Pamplemousse, glycine, rhubarbe, note saline'},
+ {n:'Pinot Blanc',syn:'Alsace / Suisse',c:'b',d:'Discret et rond, plus neutre que ses cousins Pinot, polyvalent à table.',t:'Pomme, fleurs blanches, amande douce'},
+ {n:'Pinot Gris',syn:'Pinot Grigio',c:'b',d:'Ample et fumé en Alsace, plus net et léger en version italienne.',t:'Poire, fruits secs, miel léger, épices douces'},
  {n:'Pinot Noir',syn:'Bourgogne',c:'r',d:'Fin et capricieux, translucide et profond, cépage de la Bourgogne.',t:'Cerise, fraise, sous-bois, champignon'},
+ {n:'Primitivo',syn:'Zinfandel',c:'r',d:'Cépage solaire des Pouilles, identique au Zinfandel californien.',t:'Mûre confite, prune, épices, alcool généreux'},
  {n:'Riesling',syn:'Alsace / Allemagne',c:'b',d:'Noble et précis, grande acidité et belle aptitude à la garde.',t:'Citron vert, pomme, pétrole, pierre à fusil'},
  {n:'Sangiovese',syn:'Toscane',c:'r',d:'Cépage de la Toscane (Chianti, Brunello), acidulé et savoureux.',t:'Cerise acidulée, tomate séchée, herbes, cuir'},
  {n:'Sauvignon Blanc',syn:'Loire / Bordeaux',c:'b',d:'Aromatique et incisif (Sancerre, Pouilly-Fumé), très vif.',t:'Pamplemousse, bourgeon de cassis, herbe, agrumes'},
+ {n:'Savagnin',syn:'Heida (Valais)',c:'b',d:'Cépage de montagne, riche et oxydatif, vin de garde et de caractère.',t:'Fruits secs, noix, épices, cire d\'abeille'},
+ {n:'Sémillon',syn:'Sauternes / Pessac',c:'b',d:'Cépage du Sauternes, sensible au botrytis, ample et confit en liquoreux.',t:'Miel, abricot, cire, agrumes confits'},
+ {n:'Sylvaner',syn:'Johannisberg (Valais)',c:'b',d:'Blanc tendre et discret, cultivé en Alsace et dans le Valais.',t:'Fruits blancs, herbe fraîche, légère amertume'},
  {n:'Syrah',syn:'Shiraz',c:'r',d:'Cépage du Rhône nord, poivré et profond, élégant ou massif.',t:'Mûre, poivre noir, violette, lard fumé'},
+ {n:'Tannat',syn:'Madiran',c:'r',d:'Le cépage le plus tannique de France, sombre et taillé pour la garde.',t:'Fruits noirs, réglisse, cuir, épices'},
  {n:'Tempranillo',syn:'Tinto Fino',c:'r',d:'Le grand rouge espagnol (Rioja, Ribera), taillé pour l\'élevage en fût.',t:'Cerise, cuir, vanille, tabac'},
+ {n:'Trebbiano',syn:'Abruzzes / Toscane',c:'b',d:'Cépage blanc très répandu en Italie, neutre sauf entre bonnes mains.',t:'Pomme verte, fleurs blanches, amande, citron'},
+ {n:'Treixadura',syn:'Ribeiro (Galice)',c:'b',d:'Blanc atlantique galicien, frais et floral, souvent en assemblage.',t:'Fleurs blanches, fruits blancs, agrumes doux'},
+ {n:'Trepat',syn:'Catalogne',c:'r',d:'Cépage catalan léger, utilisé en rosé et dans le Cava Rosado.',t:'Fraise, framboise, fleurs, légèreté'},
  {n:'Verdejo',syn:'Rueda',c:'b',d:'Cépage de Rueda, herbacé et nerveux, désaltérant.',t:'Fenouil, citron, fruits exotiques, amande amère'},
  {n:'Vermentino',syn:'Sardaigne / Provence',c:'b',d:'Méditerranéen, salin et herbacé, parfait sur le poisson.',t:'Citron, herbes, amande, embruns'},
+ {n:'Vernaccia',syn:'San Gimignano (Toscane)',c:'b',d:'Blanc toscan historique, sec avec une pointe d\'amertume en finale.',t:'Amande, fleurs blanches, agrumes, salinité'},
  {n:'Viognier',syn:'Condrieu',c:'b',d:'Cépage du Condrieu : opulent et parfumé, faible acidité.',t:'Abricot, pêche, chèvrefeuille, fleurs blanches'},
+ {n:'Viura',syn:'Rioja blanco',c:'b',d:'Cépage blanc historique de la Rioja, neutre jeune, riche avec l\'âge.',t:'Pomme, amande, fleurs blanches, miel léger'},
 ];
 
 /* ============================ ÉTAT ============================ */
-let state = { tab:'app', country:'FR', type:'rouge', filterOn:false, target:{}, milCountry:'FR', milColor:{} };
+let state = { tab:'app', country:'FR', type:'rouge', filterOn:false, target:{}, milCountry:'FR', milColor:{}, qApp:'', qMil:'', qCep:'' };
+
+// normalise pour une recherche insensible aux accents/casse
+function norm(s){ return (s||'').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
 
 /* ============================ RENDU ============================ */
 function setTab(t){
@@ -587,6 +664,22 @@ function renderControls(){
 
 function currentList(){ return (APPS[state.country] && APPS[state.country][state.type]) || []; }
 
+function emptyAppHint(q){
+  if(!q) return 'Aucun résultat pour cette recherche.';
+  // cherche le terme dans tous les pays/types pour orienter l'utilisateur
+  for(const c of COUNTRIES){
+    for(const ty of ['rouge','blanc','effervescent']){
+      const arr=(APPS[c.id] && APPS[c.id][ty]) || [];
+      const hit = arr.find(a=> norm(a.n).includes(q) || norm(a.r).includes(q) || norm(a.cep||'').includes(q));
+      if(hit && (c.id!==state.country || ty!==state.type)){
+        const tyLabel = ty==='rouge'?'rouge':ty==='blanc'?'blanc':'effervescent';
+        return `Aucun résultat ici, mais « ${hit.n} » existe en ${c.flag} ${c.name} · ${tyLabel}.`;
+      }
+    }
+  }
+  return 'Aucun résultat pour cette recherche.';
+}
+
 function renderFilter(){
   const rows=document.getElementById('filterRows');
   rows.innerHTML='';
@@ -623,21 +716,34 @@ function axisBar(ax,val,target){
 }
 
 function renderApps(){
-  const list=currentList(), cards=document.getElementById('cards'), axes=AXES[state.type];
+  const fullList=currentList(), cards=document.getElementById('cards'), axes=AXES[state.type];
+  const q=norm(state.qApp);
+  let list = fullList.filter(a=>{
+    if(!q) return true;
+    const cepName = a.cep || '';
+    return norm(a.n).includes(q) || norm(a.r).includes(q) || norm(cepName).includes(q);
+  });
+  // tri alphabétique toujours, le filtre par goût n'affecte que le badge % affiché
+  list = [...list].sort((x,y)=>x.n.localeCompare(y.n,'fr'));
+
   let items=list.map(a=>({a, m: state.filterOn? matchScore(a):null}));
-  if(state.filterOn && Object.keys(state.target).length){ items.sort((x,y)=>(y.m??-1)-(x.m??-1)); }
 
   document.getElementById('resultCount').textContent = list.length + (list.length>1?' appellations':' appellation');
 
-  if(!list.length){
+  if(!fullList.length){
     cards.innerHTML='<div class="empty">Aucune donnée pour cette sélection.</div>';
+  } else if(!list.length){
+    cards.innerHTML=`<div class="empty">${emptyAppHint(q)}</div>`;
   } else {
     cards.innerHTML = items.map(({a,m})=>{
       const matchHtml = (m!=null)? `<div class="match"><div class="pct">${Math.max(0,m)}%</div><div class="ml">match</div></div>`:'';
       const bars = axes.map((ax,i)=>axisBar(ax, a.v[i], (state.filterOn && (ax.k in state.target))? state.target[ax.k]:null)).join('');
+      const subHtml = a.cep
+        ? `<span class="cepplain">${a.r.includes('·') ? a.r.split('·')[0].trim() + ' · ' : ''}</span><a class="ceplink" onclick="openCepPopover('${a.cep.replace(/'/g,"\\'")}')">${a.cep}</a>`
+        : a.r;
       return `<article class="card">
         <div class="top">
-          <div><h2>${a.n}</h2><div class="sub">${a.r}</div><span class="chip">⏳ Garde ${a.g}</span></div>
+          <div><h2>${a.n}</h2><div class="sub">${subHtml}</div><span class="chip">⏳ Garde ${a.g}</span></div>
           ${matchHtml}
         </div>
         <p class="desc">${a.d}</p>
@@ -667,10 +773,27 @@ function renderMilControls(){
     it=>{state.milCountry=it.id; renderMilControls(); renderMil();}
   );
 }
+function emptyMilHint(q){
+  if(!q) return 'Aucun résultat pour cette recherche.';
+  const hit = VINTAGES.find(r=> r.c!==state.milCountry && norm(r.n).includes(q));
+  if(hit){
+    const c=COUNTRIES.find(x=>x.id===hit.c);
+    return `Aucun résultat ici, mais « ${hit.n} » existe en ${c.flag} ${c.name}.`;
+  }
+  return 'Aucun résultat pour cette recherche.';
+}
 function renderMil(){
   renderMilControls();
   const host=document.getElementById('regions');
-  const regs=VINTAGES.map((r,idx)=>({r,idx})).filter(o=>o.r.c===state.milCountry);
+  const q=norm(state.qMil);
+  let regs=VINTAGES.map((r,idx)=>({r,idx})).filter(o=>o.r.c===state.milCountry);
+  if(q) regs=regs.filter(o=>norm(o.r.n).includes(q));
+  regs.sort((x,y)=>x.r.n.localeCompare(y.r.n,'fr'));
+
+  if(!regs.length){
+    host.innerHTML=`<div class="empty">${emptyMilHint(q)}</div>`;
+    return;
+  }
   host.innerHTML = regs.map(({r,idx})=>{
     const hasR=!!r.rouge, hasB=!!r.blanc;
     let color = state.milColor[idx] || (hasR?'rouge':'blanc');
@@ -696,11 +819,23 @@ function renderMil(){
 function setMilColor(idx,color){ state.milColor[idx]=color; renderMil(); }
 
 /* ---------- cépages ---------- */
+function cepSlug(n){ return norm(n).replace(/[^a-z0-9]+/g,'-'); }
+
 function renderCepages(){
   const host=document.getElementById('cepages');
-  const sorted=[...CEPAGES].sort((a,b)=>a.n.localeCompare(b.n,'fr'));
-  host.innerHTML = sorted.map(c=>`
-    <div class="cep">
+  const q=norm(state.qCep);
+  let list=[...CEPAGES];
+  if(q) list=list.filter(c=> norm(c.n).includes(q) || norm(c.syn).includes(q) || norm(c.t).includes(q) || norm(c.d).includes(q));
+  list.sort((a,b)=>a.n.localeCompare(b.n,'fr'));
+
+  document.getElementById('cepCount').textContent = list.length + (list.length>1?' cépages':' cépage') + ' · ordre alphabétique';
+
+  if(!list.length){
+    host.innerHTML='<div class="empty">Aucun résultat pour cette recherche.</div>';
+    return;
+  }
+  host.innerHTML = list.map(c=>`
+    <div class="cep" id="cep-${cepSlug(c.n)}">
       <div class="ch">
         <span class="dot ${c.c}"></span>
         <h2>${c.n}</h2>
@@ -710,6 +845,32 @@ function renderCepages(){
       <p class="t"><b>Goûts</b>${c.t}.</p>
     </div>`).join('');
 }
+
+/* ---------- popover cépage (depuis Appellations) ---------- */
+function openCepPopover(name){
+  const c = CEPAGES.find(x=>x.n===name);
+  if(!c) return;
+  const pop=document.getElementById('cepPopover');
+  pop.innerHTML = `
+    <div class="ph">
+      <span class="dot ${c.c}"></span>
+      <h2>${c.n}</h2>
+      <span class="syn">${c.c==='r'?'Rouge':'Blanc'} · ${c.syn}</span>
+    </div>
+    <p class="d">${c.d}</p>
+    <p class="t"><b>Goûts</b>${c.t}.</p>
+    <button class="close" onclick="closeCepPopover()">Fermer</button>`;
+  document.getElementById('cepOverlay').classList.add('open');
+}
+function closeCepPopover(){
+  document.getElementById('cepOverlay').classList.remove('open');
+}
+
+/* ---------- recherche : écouteurs ---------- */
+document.getElementById('searchApp').addEventListener('input', e=>{ state.qApp=e.target.value; renderApps(); });
+document.getElementById('searchMil').addEventListener('input', e=>{ state.qMil=e.target.value; renderMil(); });
+document.getElementById('searchCep').addEventListener('input', e=>{ state.qCep=e.target.value; renderCepages(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeCepPopover(); });
 
 /* ============================ INIT ============================ */
 renderControls();
