@@ -29,7 +29,6 @@
   header{padding:24px 0 6px}
   h1{font-family:var(--serif);font-weight:600;font-size:34px;line-height:1;margin:0;letter-spacing:-.015em}
   h1 .am{font-style:italic;color:var(--gold)}
-  .tagline{color:var(--dim);font-size:13.5px;margin:10px 0 0}
 
   .tabs{display:flex;gap:6px;margin:18px 0 6px;border-bottom:1px solid var(--line)}
   .tab{
@@ -50,10 +49,17 @@
   }
   .seg button:hover{border-color:var(--gold)}
   .seg button[aria-pressed="true"]{background:var(--gold);color:#241a10;border-color:var(--gold);font-weight:600}
+  .seg button.locked{opacity:.4;cursor:not-allowed}
+  .seg button.locked:hover{border-color:var(--line-strong)}
   .seg .flag{font-size:15px;line-height:1}
-  .seg .type-rouge[aria-pressed="true"]{background:var(--wine);border-color:var(--wine);color:#fff}
-  .seg .type-blanc[aria-pressed="true"]{background:#e9d9a8;border-color:#e9d9a8;color:#3a2c14}
-  .seg .type-effervescent[aria-pressed="true"]{background:#c9b15f;border-color:#c9b15f;color:#2a2110}
+  .seg .type-rouge[aria-pressed="true"],
+  .seg .type-blanc[aria-pressed="true"],
+  .seg .type-effervescent[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:#241a10;font-weight:600}
+  .seg .tdot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+  .seg .tdot.rouge{background:var(--wine)}
+  .seg .tdot.blanc{background:#e9d9a8}
+  .seg .tdot.effervescent{background:#c9b15f}
+  .seg button[aria-pressed="true"] .tdot{border:1.5px solid rgba(0,0,0,.35)}
 
   .searchbar{position:relative;margin:14px 0 0}
   .searchbar .sico{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--faint);font-size:15px;pointer-events:none}
@@ -167,6 +173,50 @@
   .cep .t{font-size:12.5px;margin:7px 0 0;color:var(--text)}
   .cep .t b{color:var(--gold);font-weight:600;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-right:4px}
 
+  .compareBanner{display:none}
+  .compareBanner.active{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;
+    background:var(--surface-2);border:1px solid var(--gold);border-radius:10px;padding:10px 13px;font-size:13px;color:var(--text);
+  }
+  .compareBanner .cancel{background:none;border:0;color:var(--gold);font-size:12.5px;cursor:pointer;flex:none}
+
+  .card.selectable{cursor:pointer;border-color:var(--line-strong);transition:.12s}
+  .card.selectable:hover{border-color:var(--gold)}
+  .card.picked{border-color:var(--gold);background:var(--surface-3)}
+  .card .pickbox{
+    width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line-strong);flex:none;
+    display:flex;align-items:center;justify-content:center;font-size:12px;color:transparent;background:var(--surface);
+  }
+  .card.picked .pickbox{background:var(--gold);border-color:var(--gold);color:#241a10;font-weight:700}
+
+  .cmpWrap{border:1px solid var(--gold);background:var(--surface);border-radius:14px;padding:16px;margin:14px 0}
+  .cmpHead{display:flex;flex-direction:row;align-items:flex-start;gap:10px;margin-bottom:14px}
+  .cmpSide{flex:1;min-width:0}
+  .cmpSide h3{font-family:var(--serif);font-size:15.5px;line-height:1.25;margin:0 0 3px;font-weight:600;display:flex;align-items:flex-start;gap:6px}
+  .cmpSide .swc{width:10px;height:10px;border-radius:50%;flex:none;margin-top:5px}
+  .cmpSide.a .swc{background:var(--wine)}
+  .cmpSide.b .swc{background:var(--gold)}
+  .cmpSide .sub2{color:var(--faint);font-size:10.5px;font-family:var(--mono);line-height:1.4}
+  .cmpSide .chip{margin-top:6px;font-size:10px;padding:3px 8px}
+  .cmpSide .cmpDesc{color:var(--dim);font-size:11.5px;margin:8px 0 0;line-height:1.5}
+  .cmpAxis{margin:0 0 16px}
+  .cmpAxis .arow{display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:6px}
+  .cmpAxis .aname{color:var(--text);font-weight:600;font-size:12.5px}
+  .cmpAxis .aends{color:var(--faint);font-size:10px}
+  .cmpTrack{position:relative;height:8px;border-radius:8px;background:var(--surface-3)}
+  .cmpTrack .grad{position:absolute;inset:0;border-radius:8px;background:linear-gradient(90deg,rgba(203,157,68,.10),rgba(203,157,68,.26))}
+  .cmpTrack .dotA,.cmpTrack .dotB{
+    position:absolute;top:50%;width:16px;height:16px;border-radius:50%;border:2px solid var(--bg);
+    transform:translate(-50%,-50%);box-shadow:0 1px 3px rgba(0,0,0,.5);
+  }
+  .cmpTrack .dotA{background:var(--wine);z-index:2}
+  .cmpTrack .dotB{background:var(--gold);z-index:1}
+  .cmpClose{
+    display:block;width:100%;appearance:none;cursor:pointer;background:var(--surface-2);border:1px solid var(--line-strong);
+    color:var(--text);border-radius:10px;padding:10px;font-size:13px;font-family:var(--sans);margin-top:4px;
+  }
+  .cmpHint{color:var(--faint);font-size:11.5px;margin:0 0 14px}
+
   .empty{color:var(--faint);font-size:13px;text-align:center;padding:32px 10px;font-style:italic}
   .thin{margin-top:12px;border:1px dashed var(--line-strong);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--dim)}
 
@@ -205,9 +255,12 @@
 
     <div class="filterbar">
       <button class="ghost" id="filterToggle" aria-pressed="false" onclick="toggleFilter()">⌖ Filtrer par goût</button>
+      <button class="ghost" id="compareToggle" aria-pressed="false" onclick="toggleCompare()">⇄ Comparer</button>
       <span class="count" id="resultCount"></span>
     </div>
     <p class="hint">⏳ Garde = années après le millésime pour boire le vin à son apogée.</p>
+
+    <div class="compareBanner" id="compareBanner"></div>
 
     <div class="panel" id="filterPanel">
       <h3>Quel profil cherches-tu&nbsp;?</h3>
@@ -216,6 +269,7 @@
       <button class="reset" onclick="resetFilter()">Réinitialiser les curseurs</button>
     </div>
 
+    <div id="compareResult"></div>
     <div class="cards" id="cards"></div>
     <div id="thinNote"></div>
   </section>
@@ -325,6 +379,7 @@ FR:{
  ],
  blanc:[
   {n:'Chablis',r:'Bourgogne · Chardonnay',cep:'Chardonnay',g:'3-8 ans',d:'Chardonnay tranchant et salin, presque sans bois.',v:[5,80,88,50,15]},
+  {n:'Petit Chablis',r:'Bourgogne · Chardonnay',cep:'Chardonnay',g:'1-3 ans',d:'Version la plus simple et directe du Chablisien, vive et citronnée.',v:[4,78,75,42,3]},
   {n:'Puligny-Montrachet',r:'Bourgogne · Chardonnay',cep:'Chardonnay',g:'5-12 ans',d:'Grand blanc ciselé, tension et profondeur minérale.',v:[6,65,75,65,50]},
   {n:'Meursault',r:'Bourgogne · Chardonnay',cep:'Chardonnay',g:'4-10 ans',d:'Plus rond et beurré, noisette, légèrement boisé.',v:[8,55,60,65,55]},
   {n:'Pouilly-Fuissé',r:'Mâconnais · Chardonnay',cep:'Chardonnay',g:'2-6 ans',d:'Chardonnay du sud généreux, fruits blancs, accessible.',v:[8,58,60,60,45]},
@@ -616,7 +671,7 @@ const CEPAGES = [
 ];
 
 /* ============================ ÉTAT ============================ */
-let state = { tab:'app', country:'FR', type:'rouge', filterOn:false, target:{}, milCountry:'FR', milColor:{}, qApp:'', qMil:'', qCep:'' };
+let state = { tab:'app', country:'FR', type:'rouge', filterOn:false, target:{}, milCountry:'FR', milColor:{}, qApp:'', qMil:'', qCep:'', compareOn:false, comparePicked:[] };
 
 // normalise pour une recherche insensible aux accents/casse
 function norm(s){ return (s||'').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
@@ -652,14 +707,20 @@ function renderControls(){
     it=>state.country===it.id,
     it=>{state.country=it.id; renderControls(); renderApps();}
   );
-  const types=[{id:'rouge',label:'Rouge'},{id:'blanc',label:'Blanc'},{id:'effervescent',label:'Effervescent'}];
+  const types=[
+    {id:'rouge', html:'<span class="tdot rouge"></span>Rouge'},
+    {id:'blanc', html:'<span class="tdot blanc"></span>Blanc'},
+    {id:'effervescent', html:'<span class="tdot effervescent"></span>Effervescent'},
+  ];
   buildSeg(
     document.getElementById('typeSeg'),
     types,
     it=>state.type===it.id,
-    it=>{state.type=it.id; state.target={}; renderFilter(); renderApps();},
+    it=>{ if(state.compareOn) return; state.type=it.id; state.target={}; state.comparePicked=[]; document.getElementById('compareResult').innerHTML=''; renderControls(); renderFilter(); renderApps(); },
     it=>'type-'+it.id
   );
+  const typeBtns = document.querySelectorAll('#typeSeg button');
+  typeBtns.forEach(b=>{ b.disabled = state.compareOn; b.classList.toggle('locked', state.compareOn); });
 }
 
 function currentList(){ return (APPS[state.country] && APPS[state.country][state.type]) || []; }
@@ -723,12 +784,34 @@ function renderApps(){
     const cepName = a.cep || '';
     return norm(a.n).includes(q) || norm(a.r).includes(q) || norm(cepName).includes(q);
   });
-  // tri alphabétique toujours, le filtre par goût n'affecte que le badge % affiché
+  // tri alphabétique par défaut ; si le filtre par goût est actif avec au moins un critère réglé, tri par % décroissant
   list = [...list].sort((x,y)=>x.n.localeCompare(y.n,'fr'));
 
   let items=list.map(a=>({a, m: state.filterOn? matchScore(a):null}));
+  if(state.filterOn && Object.keys(state.target).length){
+    items.sort((x,y)=>(y.m??-1)-(x.m??-1));
+  }
 
   document.getElementById('resultCount').textContent = list.length + (list.length>1?' appellations':' appellation');
+
+  // bandeau de mode comparaison
+  const banner=document.getElementById('compareBanner');
+  if(state.compareOn){
+    banner.classList.add('active');
+    const n=state.comparePicked.length;
+    const picks = state.comparePicked.map(p=>{
+      const fl = COUNTRIES.find(c=>c.id===p.country).flag;
+      return `${fl} ${p.name}`;
+    }).join('  ·  ');
+    banner.innerHTML = `<span>⇄ Sélectionne 2 appellations à comparer (tous pays) — ${n}/2${picks? ' : '+picks:''}</span><button class="cancel" onclick="exitCompare()">Annuler</button>`;
+  } else {
+    banner.classList.remove('active');
+    banner.innerHTML='';
+  }
+  // si la comparaison n'est pas complète (0 ou 1 sélection), on masque le résultat
+  if(!state.compareOn || state.comparePicked.length<2){
+    document.getElementById('compareResult').innerHTML = '';
+  }
 
   if(!fullList.length){
     cards.innerHTML='<div class="empty">Aucune donnée pour cette sélection.</div>';
@@ -738,6 +821,20 @@ function renderApps(){
     cards.innerHTML = items.map(({a,m})=>{
       const matchHtml = (m!=null)? `<div class="match"><div class="pct">${Math.max(0,m)}%</div><div class="ml">match</div></div>`:'';
       const bars = axes.map((ax,i)=>axisBar(ax, a.v[i], (state.filterOn && (ax.k in state.target))? state.target[ax.k]:null)).join('');
+      if(state.compareOn){
+        const idx = state.comparePicked.findIndex(p=>p.country===state.country && p.name===a.n);
+        const picked = idx>-1;
+        const mark = picked ? (idx===0?'A':'B') : '';
+        const subPlain = a.cep ? `${a.r.includes('·') ? a.r.split('·')[0].trim()+' · ':''}${a.cep}` : a.r;
+        return `<article class="card selectable ${picked?'picked':''}" onclick="pickCompare('${state.country}','${a.n.replace(/'/g,"\\'")}')">
+          <div class="top">
+            <div><h2>${a.n}</h2><div class="sub">${subPlain}</div><span class="chip">⏳ Garde ${a.g}</span></div>
+            <div class="pickbox">${mark}</div>
+          </div>
+          <p class="desc">${a.d}</p>
+          ${bars}
+        </article>`;
+      }
       const subHtml = a.cep
         ? `<span class="cepplain">${a.r.includes('·') ? a.r.split('·')[0].trim() + ' · ' : ''}</span><a class="ceplink" onclick="openCepPopover('${a.cep.replace(/'/g,"\\'")}')">${a.cep}</a>`
         : a.r;
@@ -757,12 +854,85 @@ function renderApps(){
 
 function toggleFilter(){
   state.filterOn=!state.filterOn;
+  if(state.filterOn && state.compareOn){ state.compareOn=false; state.comparePicked=[]; document.getElementById('compareToggle').setAttribute('aria-pressed','false'); renderControls(); }
   document.getElementById('filterToggle').setAttribute('aria-pressed',state.filterOn);
   document.getElementById('filterPanel').classList.toggle('open',state.filterOn);
   if(state.filterOn && !Object.keys(state.target).length){ renderFilter(); }
   renderApps();
 }
 function resetFilter(){ state.target={}; renderFilter(); renderApps(); }
+
+function toggleCompare(){
+  state.compareOn=!state.compareOn;
+  state.comparePicked=[];
+  if(state.compareOn && state.filterOn){ state.filterOn=false; document.getElementById('filterToggle').setAttribute('aria-pressed','false'); document.getElementById('filterPanel').classList.remove('open'); }
+  document.getElementById('compareToggle').setAttribute('aria-pressed', state.compareOn);
+  document.getElementById('compareResult').innerHTML='';
+  renderControls();
+  renderApps();
+}
+
+function findAppByCountryName(country, name){
+  const arr = (APPS[country] && APPS[country][state.type]) || [];
+  return arr.find(a=>a.n===name);
+}
+
+function pickCompare(country, name){
+  const i = state.comparePicked.findIndex(p=>p.country===country && p.name===name);
+  if(i>-1){ state.comparePicked.splice(i,1); }
+  else if(state.comparePicked.length<2){ state.comparePicked.push({country, name}); }
+  renderApps();
+  if(state.comparePicked.length===2){ renderCompareResult(); }
+  else { document.getElementById('compareResult').innerHTML=''; }
+}
+
+function exitCompare(){
+  state.compareOn=false; state.comparePicked=[];
+  document.getElementById('compareToggle').setAttribute('aria-pressed','false');
+  document.getElementById('compareResult').innerHTML='';
+  renderControls();
+  renderApps();
+}
+
+function renderCompareResult(){
+  const pA=state.comparePicked[0], pB=state.comparePicked[1];
+  const a=findAppByCountryName(pA.country, pA.name);
+  const b=findAppByCountryName(pB.country, pB.name);
+  const host=document.getElementById('compareResult');
+  if(!a || !b){ host.innerHTML=''; return; }
+  const axes=AXES[state.type];
+  const cA=COUNTRIES.find(c=>c.id===pA.country), cB=COUNTRIES.find(c=>c.id===pB.country);
+  const axesHtml = axes.map((ax,i)=>`
+    <div class="cmpAxis">
+      <div class="arow"><span class="aname">${ax.n}</span><span class="aends">${ax.lo} · ${ax.hi}</span></div>
+      <div class="cmpTrack">
+        <div class="grad"></div>
+        <div class="dotB" style="left:${b.v[i]}%"></div>
+        <div class="dotA" style="left:${a.v[i]}%"></div>
+      </div>
+    </div>`).join('');
+  host.innerHTML = `
+    <div class="cmpWrap">
+      <p class="cmpHint">Comparaison · ${state.type==='rouge'?'Rouge':state.type==='blanc'?'Blanc':'Effervescent'}</p>
+      <div class="cmpHead">
+        <div class="cmpSide a">
+          <h3><span class="swc"></span>${cA.flag} ${a.n}</h3>
+          <div class="sub2">${a.r}</div>
+          <span class="chip">⏳ Garde ${a.g}</span>
+          <p class="cmpDesc">${a.d}</p>
+        </div>
+        <div class="cmpSide b">
+          <h3><span class="swc"></span>${cB.flag} ${b.n}</h3>
+          <div class="sub2">${b.r}</div>
+          <span class="chip">⏳ Garde ${b.g}</span>
+          <p class="cmpDesc">${b.d}</p>
+        </div>
+      </div>
+      ${axesHtml}
+      <button class="cmpClose" onclick="exitCompare()">Fermer la comparaison</button>
+    </div>`;
+  host.scrollIntoView({behavior:'smooth', block:'start'});
+}
 
 /* ---------- millésimes ---------- */
 function renderMilControls(){
