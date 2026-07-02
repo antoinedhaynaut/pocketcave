@@ -62,13 +62,17 @@
   .seg button[aria-pressed="true"] .tdot{border:1.5px solid rgba(0,0,0,.35)}
 
   .searchbar{position:relative;margin:14px 0 0}
-  .searchbar .sico{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--faint);font-size:15px;pointer-events:none}
+  .searchbar .sico{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--faint);font-size:15px;pointer-events:none;transition:.15s}
   .searchbar input{
     width:100%;appearance:none;background:var(--surface);border:1px solid var(--line-strong);color:var(--text);
     border-radius:10px;padding:11px 14px 11px 36px;font-size:14px;font-family:var(--sans);outline:none;
   }
   .searchbar input::placeholder{color:var(--faint)}
   .searchbar input:focus{border-color:var(--gold)}
+  .searchbar-toggle input{padding-right:162px}
+  .stoggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);display:flex;gap:3px;background:var(--surface-2);border-radius:7px;padding:3px}
+  .stbtn{appearance:none;cursor:pointer;border:0;background:none;color:var(--faint);font-size:12px;font-family:var(--sans);border-radius:5px;padding:4px 9px;white-space:nowrap;transition:.12s}
+  .stbtn.active{background:var(--gold);color:#241a10;font-weight:600}
 
   .filterbar{display:flex;align-items:center;gap:10px;margin:16px 0 0;flex-wrap:wrap}
   .ghost{
@@ -250,9 +254,13 @@
     <div class="seg-label">Type de vin</div>
     <div class="seg" id="typeSeg"></div>
 
-    <div class="searchbar">
-      <span class="sico">⌕</span>
+    <div class="searchbar searchbar-toggle">
+      <span class="sico" id="searchIcon">⌕</span>
       <input type="text" id="searchApp" placeholder="Rechercher une appellation, un cépage…" autocomplete="off">
+      <div class="stoggle">
+        <button class="stbtn active" id="stApp" onclick="setSearchMode('app')">Appellation</button>
+        <button class="stbtn" id="stAccord" onclick="setSearchMode('accord')">Accord</button>
+      </div>
     </div>
 
     <div class="filterbar">
@@ -673,10 +681,24 @@ const CEPAGES = [
 ];
 
 /* ============================ ÉTAT ============================ */
-let state = { tab:'app', country:'FR', type:'rouge', filterOn:false, target:{}, milCountry:'FR', milColor:{}, qApp:'', qMil:'', qCep:'', compareOn:false, comparePicked:[] };
+let state = { tab:'app', country:'FR', type:'rouge', filterOn:false, target:{}, milCountry:'FR', milColor:{}, qApp:'', qMil:'', qCep:'', qAccord:'', searchMode:'app', compareOn:false, comparePicked:[] };
 
 // normalise pour une recherche insensible aux accents/casse
 function norm(s){ return (s||'').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+
+function setSearchMode(mode){
+  state.searchMode = mode;
+  // vide l'autre slot et transfère la valeur courante au bon slot
+  const val = document.getElementById('searchApp').value;
+  state.qApp = ''; state.qAccord = '';
+  if(mode==='app') state.qApp = val; else state.qAccord = val;
+  document.getElementById('stApp').classList.toggle('active', mode==='app');
+  document.getElementById('stAccord').classList.toggle('active', mode==='accord');
+  document.getElementById('searchIcon').textContent = mode==='app' ? '⌕' : '🍽';
+  const ph = mode==='app' ? 'Rechercher une appellation, un cépage…' : 'Accord mets/vin… (agneau, huîtres, truffe…)';
+  document.getElementById('searchApp').placeholder = ph;
+  renderApps();
+}
 
 /* ============================ RENDU ============================ */
 function setTab(t){
@@ -727,9 +749,10 @@ function renderControls(){
 
 function currentList(){ return (APPS[state.country] && APPS[state.country][state.type]) || []; }
 
-function emptyAppHint(q){
+function emptyAppHint(q, qa){
+  if(q && qa) return `Aucune appellation avec « ${q} » et l'accord « ${qa} » dans cette sélection.`;
+  if(qa && !q) return `Aucune appellation avec « ${qa} » dans les accords pour cette sélection.`;
   if(!q) return 'Aucun résultat pour cette recherche.';
-  // cherche le terme dans tous les pays/types pour orienter l'utilisateur
   for(const c of COUNTRIES){
     for(const ty of ['rouge','blanc','effervescent']){
       const arr=(APPS[c.id] && APPS[c.id][ty]) || [];
@@ -781,10 +804,11 @@ function axisBar(ax,val,target){
 function renderApps(){
   const fullList=currentList(), cards=document.getElementById('cards'), axes=AXES[state.type];
   const q=norm(state.qApp);
+  const qa=norm(state.qAccord);
   let list = fullList.filter(a=>{
-    if(!q) return true;
-    const cepName = a.cep || '';
-    return norm(a.n).includes(q) || norm(a.r).includes(q) || norm(cepName).includes(q);
+    if(q && !( norm(a.n).includes(q) || norm(a.r).includes(q) || norm(a.cep||'').includes(q) )) return false;
+    if(qa && !norm(a.a||'').includes(qa)) return false;
+    return true;
   });
   // tri alphabétique par défaut ; si le filtre par goût est actif avec au moins un critère réglé, tri par % décroissant
   list = [...list].sort((x,y)=>x.n.localeCompare(y.n,'fr'));
@@ -818,7 +842,7 @@ function renderApps(){
   if(!fullList.length){
     cards.innerHTML='<div class="empty">Aucune donnée pour cette sélection.</div>';
   } else if(!list.length){
-    cards.innerHTML=`<div class="empty">${emptyAppHint(q)}</div>`;
+    cards.innerHTML=`<div class="empty">${emptyAppHint(q,qa)}</div>`;
   } else {
     cards.innerHTML = items.map(({a,m})=>{
       const matchHtml = (m!=null)? `<div class="match"><div class="pct">${Math.max(0,m)}%</div><div class="ml">match</div></div>`:'';
@@ -1043,7 +1067,11 @@ function closeCepPopover(){
 }
 
 /* ---------- recherche : écouteurs ---------- */
-document.getElementById('searchApp').addEventListener('input', e=>{ state.qApp=e.target.value; renderApps(); });
+document.getElementById('searchApp').addEventListener('input', e=>{
+  if(state.searchMode==='accord'){ state.qAccord=e.target.value; state.qApp=''; }
+  else { state.qApp=e.target.value; state.qAccord=''; }
+  renderApps();
+});
 document.getElementById('searchMil').addEventListener('input', e=>{ state.qMil=e.target.value; renderMil(); });
 document.getElementById('searchCep').addEventListener('input', e=>{ state.qCep=e.target.value; renderCepages(); });
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeCepPopover(); });
